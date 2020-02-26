@@ -198,7 +198,7 @@
     // ** ability to show/purge deleted items ... may create holes in NodeID including at end
     
     [db openDB];
-    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut FROM Items WHERE (SnapID = ";
+    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr FROM Items WHERE (SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
@@ -422,10 +422,11 @@
     
     // Configure the cell...
     // ** reusable cell stuff, is this the new auto way?
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"MainListCell"];
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"MainListCell"];
     
     // * needed for background image to show through cells
     cell.backgroundColor = [UIColor clearColor];
+    cell.detailTextLabel.text = @"";
     
     NSUInteger row;
     row = [indexPath row];
@@ -454,6 +455,25 @@
         {
             cell.backgroundColor = [UIColor lightGrayColor];
         }
+        // annotations
+        NSString *annotations;
+        annotations = @"";
+        if (![[aRecord objectAtIndex:4] isEqualToString:[db cDBNull]])
+        {
+            annotations = [annotations stringByAppendingString:@"Notes"];
+        }
+        NSInteger bumpctr;
+        bumpctr = [[aRecord objectAtIndex:5] integerValue];
+        if (bumpctr > 0)
+        {
+            if ([annotations length] != 0)
+            {
+                annotations = [annotations stringByAppendingString:@","];
+                
+            }
+             annotations = [annotations stringByAppendingString:[@"Bump " stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)bumpctr]]];
+        }
+        cell.detailTextLabel.text = annotations;
     }
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
     
@@ -595,7 +615,7 @@
         NSMutableArray *localRecords;
         [db openDB];
         
-        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut FROM Items WHERE (ItemText LIKE '%";
+        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr FROM Items WHERE (ItemText LIKE '%";
         sql = [sql stringByAppendingString:tmp];
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
