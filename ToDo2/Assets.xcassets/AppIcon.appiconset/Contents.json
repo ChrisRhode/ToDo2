@@ -31,8 +31,9 @@
       "scale" : "3x"
     },
     {
-      "idiom" : "iphone",
       "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "DATTBlackText2.jpg",
       "scale" : "2x"
     },
     {
@@ -81,8 +82,9 @@
       "scale" : "2x"
     },
     {
-      "idiom" : "ipad",
       "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "DATTBlackText2-1.jpg",
       "scale" : "2x"
     },
     {

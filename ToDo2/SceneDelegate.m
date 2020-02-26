@@ -1,5 +1,5 @@
 #import "SceneDelegate.h"
-
+#import "MainListTableViewController.h"
 @interface SceneDelegate ()
 
 @end
@@ -11,6 +11,32 @@
     // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
     // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
     // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+    
+    // ** latest iteration of doing away with storyboards
+    // ** learned the hard way by not properly understanding Swift coding samples
+    // ** do not create a new scene, the scene is passed in
+    // ** then create the window usingh initWithWindowScene instead of initWithFrame
+    // ** you have to case the scene to a UIWindowScene
+    // ** if you don't do all this, it will work but keyboard input to text boxes will not
+    // hierarchy: UINavigationController -> UITableViewController
+    
+    UINavigationController *rootNAV;
+   // UIWindowScene *ws;
+                                
+       rootNAV = [[UINavigationController alloc] init];
+    
+    //ws = [[UIWindowScene alloc] initWithSession:session connectionOptions:connectionOptions];
+     //  self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+      
+    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *) scene];
+       self.window.rootViewController = rootNAV;
+       self.window.backgroundColor = [UIColor whiteColor];
+       [self.window makeKeyAndVisible];
+    
+    MainListTableViewController *tmp = [[MainListTableViewController alloc] initWithStyle:UITableViewStylePlain];
+    
+      [rootNAV pushViewController:tmp animated:NO];
+    
 }
 
 
