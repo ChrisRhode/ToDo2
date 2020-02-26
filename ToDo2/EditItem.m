@@ -54,6 +54,7 @@
     _txtItemText.text = [theDBRecord objectAtIndex:0];
     // ** audit reads and writes ... null handling
     _txtviewNotes.text = [db dbNullToEmptyString:[theDBRecord objectAtIndex:1]];
+    _txtviewNotes.backgroundColor = [UIColor lightGrayColor];
     _txtBumpCtr.text = [NSString stringWithFormat:@"%ld", (long)[[theDBRecord objectAtIndex:2] integerValue]];
     _txtBumpToTopDate.text = [ugbl dateSortableToHuman:[db dbNullToEmptyString:[theDBRecord objectAtIndex:3]]];
 }
@@ -69,8 +70,20 @@
 */
 
 - (IBAction)btnEditNotesPressed:(id)sender {
-    // need to set up textViewEditing class
-    [ugbl displayPopUpAlert:@"Error" withMessage:@"Not implemented yet"];
+    TextViewEditor *tmp = [[TextViewEditor alloc] initWithText:_txtviewNotes.text  withItemShortDescription:@"Item Notes"];
+               
+                tmp.delegate = self;
+    [[self navigationController] pushViewController:tmp animated:YES];
+}
+
+-(void) doPassbackTextViewEditor: (NSString *) theText cancelWasTapped: (BOOL) wasCancelled
+{
+    // ** refresh view needed?
+    if (!wasCancelled)
+    {
+        _txtviewNotes.text = [theText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    }
+    [self.navigationController popViewControllerAnimated:NO];
 }
 
 - (IBAction)btnBumpCtrIncreasePressed:(id)sender {

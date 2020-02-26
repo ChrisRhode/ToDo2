@@ -14,6 +14,7 @@
 // ** trnlog problem when text is edited, it shows the current itemtext value even in history
 // ** maybe display friendly date at top of main controller?
 // ** disable multiple scenes if enabled
+// ** implement generic textview editor
 
 // TrnLogManagerTableViewController is now used in two ways
 //   (1) As a utility class for making all transaction log entries

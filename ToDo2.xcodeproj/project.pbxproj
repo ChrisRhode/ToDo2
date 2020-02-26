@@ -14,6 +14,8 @@
 		83B070C323FE185F0097DD50 /* DBWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B070C223FE185F0097DD50 /* DBWrapper.m */; };
 		83B070C623FE1B290097DD50 /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B070C523FE1B290097DD50 /* Utility.m */; };
 		83E717AE2402122300CCE37E /* TrnLogManagerTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E717AD2402122300CCE37E /* TrnLogManagerTableViewController.m */; };
+		83EA8310240713BC00542D9C /* TextViewEditor.m in Sources */ = {isa = PBXBuildFile; fileRef = 83EA830E240713BC00542D9C /* TextViewEditor.m */; };
+		83EA8311240713BC00542D9C /* TextViewEditor.xib in Resources */ = {isa = PBXBuildFile; fileRef = 83EA830F240713BC00542D9C /* TextViewEditor.xib */; };
 		83F2A3F823FE118B00E9C940 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F2A3F723FE118B00E9C940 /* AppDelegate.m */; };
 		83F2A3FB23FE118B00E9C940 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F2A3FA23FE118B00E9C940 /* SceneDelegate.m */; };
 		83F2A3FE23FE118B00E9C940 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 83F2A3FD23FE118B00E9C940 /* ViewController.m */; };
@@ -35,6 +37,9 @@
 		83B070C523FE1B290097DD50 /* Utility.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		83E717AC2402122300CCE37E /* TrnLogManagerTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TrnLogManagerTableViewController.h; sourceTree = "<group>"; };
 		83E717AD2402122300CCE37E /* TrnLogManagerTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TrnLogManagerTableViewController.m; sourceTree = "<group>"; };
+		83EA830D240713BC00542D9C /* TextViewEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextViewEditor.h; sourceTree = "<group>"; };
+		83EA830E240713BC00542D9C /* TextViewEditor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TextViewEditor.m; sourceTree = "<group>"; };
+		83EA830F240713BC00542D9C /* TextViewEditor.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TextViewEditor.xib; sourceTree = "<group>"; };
 		83F2A3F323FE118A00E9C940 /* ToDo2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ToDo2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		83F2A3F623FE118B00E9C940 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		83F2A3F723FE118B00E9C940 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -100,6 +105,9 @@
 				8376BFC324039A8D002DEAA7 /* EditItem.h */,
 				8376BFC424039A8D002DEAA7 /* EditItem.m */,
 				8376BFC524039A8D002DEAA7 /* EditItem.xib */,
+				83EA830D240713BC00542D9C /* TextViewEditor.h */,
+				83EA830E240713BC00542D9C /* TextViewEditor.m */,
+				83EA830F240713BC00542D9C /* TextViewEditor.xib */,
 			);
 			path = ToDo2;
 			sourceTree = "<group>";
@@ -161,6 +169,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83EA8311240713BC00542D9C /* TextViewEditor.xib in Resources */,
 				8376BFC224038CB9002DEAA7 /* DAT2.png in Resources */,
 				83F2A40623FE118C00E9C940 /* LaunchScreen.storyboard in Resources */,
 				8376BFC724039A8D002DEAA7 /* EditItem.xib in Resources */,
@@ -181,6 +190,7 @@
 				83B070C323FE185F0097DD50 /* DBWrapper.m in Sources */,
 				83F2A3F823FE118B00E9C940 /* AppDelegate.m in Sources */,
 				831B719D23FE14B100BCB8B3 /* MainListTableViewController.m in Sources */,
+				83EA8310240713BC00542D9C /* TextViewEditor.m in Sources */,
 				83B070C623FE1B290097DD50 /* Utility.m in Sources */,
 				83F2A40923FE118C00E9C940 /* main.m in Sources */,
 				83F2A3FB23FE118B00E9C940 /* SceneDelegate.m in Sources */,

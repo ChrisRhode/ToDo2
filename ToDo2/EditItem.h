@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "DBWrapper.h"
 #import "Utility.h"
+#import "TextViewEditor.h"
 
 // ** look up NS_ASSUME_NONNULL_BEGIN
 // ** can we manage currSnapID as a global better somehow?
@@ -21,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface EditItem : UIViewController
+@interface EditItem : UIViewController<TextViewEditorPassbackDelegate>
 {
     NSInteger ourNodeID;
     NSInteger currSnapID;
