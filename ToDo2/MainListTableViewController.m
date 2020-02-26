@@ -6,15 +6,16 @@
 //  Copyright © 2020 Christopher Rhode. All rights reserved.
 //
 
-// ** reimplement delete as "hide" so Transaction Log works
-// ** will also allow recovery of deleted items
+// ** ability to show deleted items
+//   ** will also allow recovery of deleted items
+//   ** true delete will create NodeID holes, may be issue if MaxID
 // ** why does .m also have an interface section?
-// ** All NSNumber casts/fixes
+// ** All NSNumber casts/fixes, intValue vs integerValue
 // ** auto vs forced reload deep understanding
 // ** trnlog problem when text is edited, it shows the current itemtext value even in history
-// ** maybe display friendly date at top of main controller?
+//   ** add trnlog discrete item field changes old and new
 // ** disable multiple scenes if enabled
-// ** implement generic textview editor
+// ** better subannotations: Notes icon, SubViews, show/hide
 
 // TrnLogManagerTableViewController is now used in two ways
 //   (1) As a utility class for making all transaction log entries
@@ -40,7 +41,7 @@
     
     refreshDueToEdit = NO;
     displayMode = 1;
-    self.title = @"ToDo by Chris Rhode";
+    //self.title = @"ToDo by Chris Rhode";
     
     // ** need to figure out why image could not be found in assets; also can JPEG/JPG be used instead of PNG
     // ** clearcolor not needed for tableView itself ??
@@ -85,11 +86,10 @@
     
     db = [[DBWrapper alloc] initForDbFile:@"ToDoDb"];
     [db openDB];
-    // ** test for status on things that return status / error handling
+    // ** test for status on things that return status / exception handling
     // ** architecture for database schema updates
     // ** bump ordering vs fixed ordering
-    // ** change InProgress to isInProgress
-    // ** add trnlog discrete item field changes old and new
+    
     
     [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID));"];
     [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER);"];
@@ -137,6 +137,12 @@
 -(void) viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    
+    NSDate *today = [NSDate date];
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"EEEE, MM/dd/yyyy"];
+    self.title = [df stringFromDate:today];
+    
     if (refreshDueToEdit)
     {
         refreshDueToEdit = NO;
@@ -144,7 +150,7 @@
     }
     else
     {
-        // ** event order/trigger on initial will appear
+        // ** (lifecycle) event order/trigger on initial will appear
         [self loadOrReloadCurrentItemView:NO];
     }
     
@@ -180,7 +186,7 @@
 -(void) doPassbackEditItem: (BOOL) wasCancelled
 {
    
-    // ** order/side effects -- viewWillAppear will fire, implied refresh?
+    // ** (lifecycle) order/side effects -- viewWillAppear will fire, implied refresh?
     refreshDueToEdit = !wasCancelled;
     [self.navigationController popViewControllerAnimated:NO];
 }
@@ -190,12 +196,11 @@
     NSString *sql;
     NSMutableArray *localRecords;
     
-    // ** nullable yes or no on records return
+    
     // ** partial index use of primary key / indexes on other fields
     // ** full text indexing on ItemText?
-    // ** disallow empty ItemText in all cases
     // ** use isXXX or isNotxxxx for booleans as DB field names
-    // ** ability to show/purge deleted items ... may create holes in NodeID including at end
+    //   ** change InProgress to isInProgress
     
     [db openDB];
     sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr FROM Items WHERE (SnapID = ";
@@ -281,11 +286,11 @@
             NSInteger nodeID;
             NSArray *aRecord;
             NSString *sql;
-            // * understand use of self
+            // ** understand use of self
              // ** () usage for self-> as example
             
             aRecord = [self->viewRecords objectAtIndex:(row-1)];
-            // ** use intValue for NSNumbers, not integerValue
+           
             // ** check for use of string decode for all fields always
             // ** consistent use of ; at end of SQL statements
             nodeID = [(NSString *)[aRecord objectAtIndex:0] integerValue];
@@ -351,7 +356,7 @@
             NSString *sql;
             
             aRecord = [self->viewRecords objectAtIndex:(row-1)];
-            // ** use intValue for NSNumbers, not integerValue
+           
             nodeID = [(NSString *)[aRecord objectAtIndex:0] integerValue];
             
             [self->trnLogger  logStartGrayToggleTransactionOfNodeID:nodeID newStateIsGray:(1-[(NSString *)[aRecord objectAtIndex:3] integerValue] == 1)];
@@ -643,7 +648,7 @@
     {
         return NO;
     }
-    // ** check for status returns and do exception handling
+    
     // ** convert to virtual operations (for undo, transaction verification etc.
     
     [trnLogger logStartAddTransactionOfNodeID:(currMaxNodeID+1) parentNodeID:currParentNodeID];
@@ -674,7 +679,7 @@
     
     textField.text = @"";
     [textField resignFirstResponder];
-    // ** apparently list refrehes without need to force it?
+    // ** (lifecycle) apparently list refrehes without need to force it?
     displayMode = 1;
     // ** displayMode management after add
     [self loadOrReloadCurrentItemView:YES];

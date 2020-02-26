@@ -58,7 +58,7 @@
            
            pieces = [sourceDate componentsSeparatedByString:@"-"];
            // enforce zero filling
-           // ** implicit treatment as string ok?
+          
            result = [NSString stringWithFormat:@"%02ld", (long)[[pieces objectAtIndex:1] integerValue]];
            result = [result stringByAppendingString:@"/"];
            result = [result stringByAppendingString:[NSString stringWithFormat:@"%02ld", (long)[[pieces objectAtIndex:2] integerValue]]];
@@ -78,7 +78,7 @@
 -(BOOL) doesContainValidHumanDate: (NSString *) theString
 {
     NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    // ** significance of MM vs mm ... will it fail if leading zeros are missing?
+    // ** will it fail if leading zeroes are missing for MM or DD?
     [df setDateFormat:@"MM/dd/yyyy"];
     NSDate *d = [df dateFromString:theString];
     return (d != nil);

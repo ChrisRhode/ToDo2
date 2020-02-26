@@ -43,7 +43,7 @@
     [db openDB];
     sql = @"SELECT ItemText,Notes,BumpCtr,BumpToTopDate FROM Items WHERE (SnapID = ";
     // ** efficiency of NSString vs NSMutableString
-    // ** ending SQL statements with ; needed? be consistent
+    
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (NodeID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)ourNodeID]];
@@ -52,7 +52,7 @@
     [db closeDB];
     theDBRecord = [[localRecords objectAtIndex:0] mutableCopy];
     _txtItemText.text = [theDBRecord objectAtIndex:0];
-    // ** audit reads and writes ... null handling
+    
     _txtviewNotes.text = [db dbNullToEmptyString:[theDBRecord objectAtIndex:1]];
     _txtviewNotes.backgroundColor = [UIColor lightGrayColor];
     _txtBumpCtr.text = [NSString stringWithFormat:@"%ld", (long)[[theDBRecord objectAtIndex:2] integerValue]];
@@ -78,7 +78,7 @@
 
 -(void) doPassbackTextViewEditor: (NSString *) theText cancelWasTapped: (BOOL) wasCancelled
 {
-    // ** refresh view needed?
+    // ** (lifecycle) refresh view needed?
     if (!wasCancelled)
     {
         _txtviewNotes.text = [theText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -181,6 +181,8 @@
     newBumpToTopDate = [ugbl dateHumanToSortable:tmp];
     
     // ** all param reads/writes nullable handling
+    // ** nullable yes or no on records return
+    
     [db openDB];
     [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=? WHERE (SnapID = ?) AND (NodeID = ?);"];
     [db doCommandWithParamsAddParameterOfType:@"S" paramValue:newItemText];

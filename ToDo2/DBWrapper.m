@@ -54,7 +54,7 @@
     if (status != SQLITE_OK)
     {
        // per textbook do a close even if the open didn't open it
-        // ** need error detect/handling for all db stuff
+        
         sqlite3_close(db);
         return NO;
     }

@@ -116,7 +116,7 @@
     NSString *display;
     NSInteger P2;
     // Configure the cell...
-    // ** reusable cell stuff
+   
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"TrnLogCell"];
     
     NSUInteger row;
@@ -290,7 +290,7 @@
 
 -(void) logStartEditTransactionOfNodeID : (NSInteger) nodeID
 {
-    // ** will lose old vs new context and detail of edits
+
     currMaxTrnLogSeqNum +=1;
     
     [db openDB];

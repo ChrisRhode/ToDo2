@@ -45,7 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (IBAction)btnEditNotesPressed:(id)sender;
 - (IBAction)btnBumpCtrIncreasePressed:(id)sender;
 - (IBAction)btnBumpCtrDecreasePressed:(id)sender;
-// ** implement date picker
+// ** implement date picker (spinners / calendar view)
 -(id) initForNodeID: (NSInteger) nodeID withCurrentSnapID: (NSInteger) snapID;
 
 @end
