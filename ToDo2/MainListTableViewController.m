@@ -16,7 +16,7 @@
 //   ** add trnlog discrete item field changes old and new
 // ** disable multiple scenes if enabled
 // ** better subannotations: Notes icon, SubViews, show/hide
-
+// ** NSArray vs NSMutableArray, pass by value vs reference, returning as function type
 // TrnLogManagerTableViewController is now used in two ways
 //   (1) As a utility class for making all transaction log entries
 //   (2) As a pushed view to display the transaction log contents
@@ -39,6 +39,7 @@
     
     NSMutableArray *localRecords;
     
+    ugbl = [[Utility alloc] init];
     refreshDueToEdit = NO;
     displayMode = 1;
     //self.title = @"ToDo by Chris Rhode";
@@ -91,7 +92,13 @@
     // ** bump ordering vs fixed ordering
     
     
-    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID));"];
+    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, DateOfEvent TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID));"];
+    // 1.0 to 1.1
+    if (![db columnExists:@"DateOfEvent" inTable:@"Items"])
+    {
+        [db executeSQLCommand:@"ALTER TABLE Items ADD COLUMN DateOfEvent TEXT;"];
+        [ugbl displayPopUpAlert:@"New feature!" withMessage:@"DateOfEvent now suppported for all items!"];
+    }
     [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER);"];
     
     NSString *returnedValue;
@@ -203,22 +210,140 @@
     //   ** change InProgress to isInProgress
     
     [db openDB];
-    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr FROM Items WHERE (SnapID = ";
+    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
-    sql = [sql stringByAppendingString:@") AND (isDeleted = 0) ORDER BY BumpCtr DESC,NodeID;"];
+    // **** old sql term
+    // sql = [sql stringByAppendingString:@") AND (isDeleted = 0) ORDER BY BumpCtr DESC,NodeID;"];
+    sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
+    
     // * have to use variable local to this scope then copy to instance variable
     [db doSelect:sql records:&localRecords];
     [db closeDB];
+    // ***** resort the table based on combo of BumpCtr,BumpToTopDate,DateOfEvent
+   viewRecords = [self sortTheRecords:&localRecords];
     // ** can viewRecords be non Mutable?  what is common convention?
-    viewRecords = [localRecords mutableCopy];
+    //viewRecords = [localRecords mutableCopy];
     if (forceReload)
     {
         [self.tableView reloadData];
     }
 }
 
+-(NSMutableArray *) sortTheRecords: (NSMutableArray *_Nullable*_Nullable) recordList
+{
+    NSArray *aRecord;
+    NSMutableArray *sortData;
+    NSUInteger idx,lastNdx;
+    NSInteger maxBumpCtr;
+    NSInteger thisBumpCtr;
+    NSInteger netPriority;
+    NSInteger daysUntilDate;
+    NSString *aField;
+    NSArray *sortRecord;
+    NSInteger thisNodeID;
+    
+    sortData = [[NSMutableArray alloc] init];
+    
+    lastNdx = [*recordList count] - 1;
+    // first get maximum bumpctr
+    maxBumpCtr = 0;
+    for (idx = 0; idx <= lastNdx; idx++)
+    {
+        aRecord = [*recordList objectAtIndex:idx];
+        // 5 BumpCtr
+        // 6 BumpToTopDate
+        // 7 DateOfEvent
+        thisBumpCtr = [[aRecord objectAtIndex:5] integerValue];
+        if (thisBumpCtr > maxBumpCtr)
+        {
+            maxBumpCtr = thisBumpCtr;
+        }
+    }
+    // now determine net priority of each item
+    for (idx = 0; idx <= lastNdx; idx++)
+       {
+           aRecord = [*recordList objectAtIndex:idx];
+           // 0 NodeID
+           // 5 BumpCtr
+           // 6 BumpToTopDate
+           // 7 DateOfEvent
+           thisNodeID = [[aRecord objectAtIndex:0] integerValue];
+           
+           netPriority = [[aRecord objectAtIndex:5] integerValue];
+           aField = [aRecord objectAtIndex:6];
+           if (![aField isEqualToString:[db cDBNull]])
+           {
+               daysUntilDate = [ugbl daysBetweenDate:[ugbl todaysDate] and:[ugbl dateFromSortable:aField]];
+               if (daysUntilDate <= 0)
+               {
+                   netPriority = maxBumpCtr+1;
+               }
+           }
+           aField = [aRecord objectAtIndex:7];
+           if (![aField isEqualToString:[db cDBNull]])
+           {
+               daysUntilDate = [ugbl daysBetweenDate:[ugbl todaysDate] and:[ugbl dateFromSortable:aField]];
+               if (daysUntilDate <= 0)
+               {
+                   netPriority = maxBumpCtr+2;
+               }
+           }
+           // recordIndex,netPriority,nodeID;
+           sortRecord = [[NSArray alloc] initWithObjects:[NSNumber numberWithInteger:idx] , [NSNumber numberWithInteger:netPriority],[NSNumber numberWithInteger:thisNodeID],nil];
+              [sortData addObject:sortRecord];
+       }
+    
+    // now have to produce a new recordList with items in corrrect order
+    //
+    NSArray *sortedArray = [sortData sortedArrayUsingComparator:^NSComparisonResult(NSArray *p1,NSArray *p2){
+        
+        NSInteger p1Value;
+        NSInteger p2Value;
+        
+        // recordIndex,netPriority,nodeID;
+        
+        p1Value = [(NSNumber *)[p1 objectAtIndex:1] intValue];
+        p2Value = [(NSNumber *)[p2 objectAtIndex:1] intValue];
+        // higher values come before lower values so we invert the return values
+        // within equal, make the decision based on the node id
+        if (p1Value < p2Value)
+        {
+            return NSOrderedDescending;
+        }
+        else if (p1Value > p2Value)
+        {
+            return NSOrderedAscending;
+        }
+        else
+        {
+            //return NSOrderedSame;
+            p1Value = [(NSNumber *)[p1 objectAtIndex:2] intValue];
+            p2Value = [(NSNumber *)[p2 objectAtIndex:2] intValue];
+            if (p1Value < p2Value)
+            {
+                return NSOrderedAscending;
+            }
+            else
+            {
+                 return NSOrderedDescending;
+            }
+        }
+    }];
+    
+    // now reconstruct recordList in correct order
+    NSMutableArray *newRecordlist = [[NSMutableArray alloc] init];
+    NSInteger thisRecordNdx;
+    
+     for (idx = 0; idx <= lastNdx; idx++)
+     {
+         thisRecordNdx = [(NSNumber *)[[sortedArray objectAtIndex:idx] objectAtIndex:0] intValue];
+         [newRecordlist addObject:[*recordList objectAtIndex:thisRecordNdx]];
+     }
+    
+    return [newRecordlist copy];
+}
 -(void)handleDisplayTrnLog
 
 {
@@ -478,6 +603,42 @@
             }
              annotations = [annotations stringByAppendingString:[@"Bump " stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)bumpctr]]];
         }
+        // 6 BumpToTopDate, 7 DateOfEvent
+        
+        NSString *aDate;
+    
+        aDate = [aRecord objectAtIndex:6];
+        if (![aDate isEqualToString:[db cDBNull]])
+        {
+            if ([annotations length] != 0)
+                       {
+                           annotations = [annotations stringByAppendingString:@","];
+                           
+                       }
+                        annotations = [annotations stringByAppendingString:[@"BumpToTop " stringByAppendingString:[ugbl dateSortableToHuman:aDate]]];
+            // * earlier date must be first
+            // [u todaysDate]
+            // [u dateFromSortable:aDate ]
+            //
+            annotations = [annotations stringByAppendingString:@" ("];
+            annotations = [annotations stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)[ugbl daysBetweenDate:[ugbl todaysDate] and: [ugbl dateFromSortable:aDate]]]];
+             annotations = [annotations stringByAppendingString:@"d)"];
+        }
+        aDate = [aRecord objectAtIndex:7];
+               if (![aDate isEqualToString:[db cDBNull]])
+               {
+                   if ([annotations length] != 0)
+                              {
+                                  annotations = [annotations stringByAppendingString:@","];
+                                  
+                              }
+                               annotations = [annotations stringByAppendingString:[@"DateOfEvent " stringByAppendingString:[ugbl dateSortableToHuman:aDate]]];
+                   annotations = [annotations stringByAppendingString:@" ("];
+                              annotations = [annotations stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)[ugbl daysBetweenDate:[ugbl todaysDate] and: [ugbl dateFromSortable:aDate]]]];
+                               annotations = [annotations stringByAppendingString:@"d)"];
+                   
+               }
+        
         cell.detailTextLabel.text = annotations;
     }
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
@@ -620,7 +781,7 @@
         NSMutableArray *localRecords;
         [db openDB];
         
-        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr FROM Items WHERE (ItemText LIKE '%";
+        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (ItemText LIKE '%";
         sql = [sql stringByAppendingString:tmp];
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
@@ -654,7 +815,7 @@
     [trnLogger logStartAddTransactionOfNodeID:(currMaxNodeID+1) parentNodeID:currParentNodeID];
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO Items VALUES (?,?,?,0,?,NULL,0,NULL,0,0);"];
+    [db doCommandWithParamsStart:@"INSERT INTO Items VALUES (?,?,?,0,?,NULL,0,NULL,0,0,NULL);"];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     currMaxNodeID += 1;
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)currMaxNodeID]];

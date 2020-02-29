@@ -220,4 +220,32 @@
     }
 }
 
+-(BOOL) columnExists: (NSString *) columnName inTable: (NSString *) tableName
+{
+    NSString *sql;
+    NSMutableArray *localRecords;
+    NSUInteger idx,lastNdx;
+    NSString *leftUpper, *rightUpper;
+    
+    leftUpper = [columnName uppercaseString];
+    
+    sql = @"PRAGMA table_info(";
+    sql = [sql stringByAppendingString:tableName];
+    sql = [sql stringByAppendingString:@");"];
+    
+    // ** use NSArray for entire chain?
+    [self doSelect:sql records:&localRecords];
+    lastNdx = [localRecords count] - 1;
+    for (idx = 0; idx <= lastNdx; idx++)
+    {
+        rightUpper = [[[localRecords objectAtIndex:idx] objectAtIndex:1] uppercaseString];
+        if ([rightUpper isEqualToString:leftUpper])
+        {
+            return YES;
+        }
+    }
+    
+    return NO;
+    
+}
 @end

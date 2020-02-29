@@ -5,6 +5,7 @@
 //  Created by Christopher Rhode on 2/23/20.
 //  Copyright © 2020 Christopher Rhode. All rights reserved.
 //
+// ** new release ... how to "force" upgrading code to run
 
 #import "EditItem.h"
 // ** how is Interface used in .m?
@@ -41,7 +42,7 @@
     NSMutableArray *theDBRecord;
     
     [db openDB];
-    sql = @"SELECT ItemText,Notes,BumpCtr,BumpToTopDate FROM Items WHERE (SnapID = ";
+    sql = @"SELECT ItemText,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
     // ** efficiency of NSString vs NSMutableString
     
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
@@ -57,6 +58,7 @@
     _txtviewNotes.backgroundColor = [UIColor lightGrayColor];
     _txtBumpCtr.text = [NSString stringWithFormat:@"%ld", (long)[[theDBRecord objectAtIndex:2] integerValue]];
     _txtBumpToTopDate.text = [ugbl dateSortableToHuman:[db dbNullToEmptyString:[theDBRecord objectAtIndex:3]]];
+    _txtDateOfEvent.text = [ugbl dateSortableToHuman:[db dbNullToEmptyString:[theDBRecord objectAtIndex:4]]];
 }
 
 /*
@@ -144,7 +146,7 @@
     NSString *newNotes;
     NSString *newBumpCtr;
     NSString *newBumpToTopDate;
-    
+    NSString *newDateOfEvent;
     NSString *tmp;
     
     tmp = [_txtItemText.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -180,15 +182,28 @@
     }
     newBumpToTopDate = [ugbl dateHumanToSortable:tmp];
     
+    tmp = [_txtDateOfEvent.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];;
+       if (![tmp isEqualToString:@""])
+       {
+           if (![ugbl doesContainValidHumanDate:tmp])
+           {
+               [ugbl displayPopUpAlert:@"Error" withMessage:@"DateOfEvent Date must be a valid date"];
+               return;
+           }
+       }
+    
+    newDateOfEvent = [ugbl dateHumanToSortable:tmp];
+    
     // ** all param reads/writes nullable handling
     // ** nullable yes or no on records return
     
     [db openDB];
-    [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=? WHERE (SnapID = ?) AND (NodeID = ?);"];
+    [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=?,DateOfEvent=? WHERE (SnapID = ?) AND (NodeID = ?);"];
     [db doCommandWithParamsAddParameterOfType:@"S" paramValue:newItemText];
     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:newNotes];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:newBumpCtr];
     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:newBumpToTopDate];
+     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:newDateOfEvent];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)ourNodeID]];
     [db doCommandWithParamsEnd];

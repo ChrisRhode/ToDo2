@@ -31,6 +31,8 @@ NS_ASSUME_NONNULL_BEGIN
 -(BOOL) doCommandWithParamsStart: (NSString *) sql;
 -(BOOL) doCommandWithParamsAddParameterOfType: (NSString *) paramType paramValue: (NSString *) theParam;
 -(BOOL) doCommandWithParamsEnd;
+-(BOOL) columnExists: (NSString *) columnName inTable: (NSString *) tableName;
+
 
 
 

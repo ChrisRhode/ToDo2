@@ -97,4 +97,26 @@
     UIViewController *currnc = [UIApplication  sharedApplication].keyWindow.rootViewController;
     [currnc presentViewController:ac animated:YES completion:nil];
 }
+
+-(NSDate *) dateFromSortable: (NSString *) theSortableDate
+{
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"yyyy-MM-dd"];
+    return [df dateFromString:theSortableDate];
+}
+
+-(NSDate *) todaysDate
+{
+    NSDate *tmp;
+    tmp = [[NSCalendar currentCalendar] startOfDayForDate:[NSDate date]];
+    return tmp;
+    
+}
+-(NSInteger) daysBetweenDate: (NSDate *) firstDate and: (NSDate *) secondDate
+{
+    NSDateComponents *c;
+    c = [[NSCalendar currentCalendar] components:NSCalendarUnitDay fromDate:firstDate toDate:secondDate options:0];
+    return [c day];
+}
+
 @end

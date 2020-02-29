@@ -99,10 +99,10 @@
 				83B070C123FE185F0097DD50 /* DBWrapper.h */,
 				83B070C223FE185F0097DD50 /* DBWrapper.m */,
 				83B070C423FE1B290097DD50 /* Utility.h */,
+				8376BFC324039A8D002DEAA7 /* EditItem.h */,
 				83B070C523FE1B290097DD50 /* Utility.m */,
 				83E717AC2402122300CCE37E /* TrnLogManagerTableViewController.h */,
 				83E717AD2402122300CCE37E /* TrnLogManagerTableViewController.m */,
-				8376BFC324039A8D002DEAA7 /* EditItem.h */,
 				8376BFC424039A8D002DEAA7 /* EditItem.m */,
 				8376BFC524039A8D002DEAA7 /* EditItem.xib */,
 				83EA830D240713BC00542D9C /* TextViewEditor.h */,
@@ -332,6 +332,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = ratcliffe.ToDo2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -349,6 +350,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = ratcliffe.ToDo2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Utility.h"
 #import "DBWrapper.h"
 // *** (4)
 #import "EditItem.h"
@@ -18,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MainListTableViewController : UITableViewController<UITextFieldDelegate,UIGestureRecognizerDelegate,EditItemPassbackDelegate>
 {
     DBWrapper *db;
+    Utility *ugbl;
     TrnLogManagerTableViewController *trnLogger;
     
     UITextField *searchOrAdd;

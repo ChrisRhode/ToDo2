@@ -39,6 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UITextView *txtviewNotes;
 @property (weak, nonatomic) IBOutlet UITextField *txtBumpCtr;
 @property (weak, nonatomic) IBOutlet UITextField *txtBumpToTopDate;
+@property (weak, nonatomic) IBOutlet UITextField *txtDateOfEvent;
 
 - (IBAction)btnOKPressed:(id)sender;
 - (IBAction)btnCancelPressed:(id)sender;

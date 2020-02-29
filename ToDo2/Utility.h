@@ -18,7 +18,9 @@ NS_ASSUME_NONNULL_BEGIN
 -(BOOL) doesContainValidNonNegativeInteger: (NSString *) theString;
 -(BOOL) doesContainValidHumanDate: (NSString *) theString;
 -(void) displayPopUpAlert: (NSString *) theTitle withMessage: (NSString *) theMessage;
-
+-(NSDate *) dateFromSortable: (NSString *) theSortableDate;
+-(NSDate *) todaysDate;
+-(NSInteger) daysBetweenDate: (NSDate *) firstDate and: (NSDate *) secondDate;
 @end
 
 NS_ASSUME_NONNULL_END
