@@ -40,6 +40,14 @@
     NSMutableArray *localRecords;
     
     ugbl = [[Utility alloc] init];
+    
+    // ****** testing
+//    NSString *tstring;
+//    tstring = @"Hello|W%orld|";
+//    tstring = [ugbl encodeString:tstring toAvoidCharacters:@"|"];
+//    tstring = [ugbl decodeString:tstring];
+//
+    //
     refreshDueToEdit = NO;
     displayMode = 1;
     //self.title = @"ToDo by Chris Rhode";
@@ -99,7 +107,13 @@
         [db executeSQLCommand:@"ALTER TABLE Items ADD COLUMN DateOfEvent TEXT;"];
         [ugbl displayPopUpAlert:@"New feature!" withMessage:@"DateOfEvent now suppported for all items!"];
     }
-    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER);"];
+    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER,ChgData TEXT);"];
+    // 1.1 to 1.2
+       if (![db columnExists:@"ChgData" inTable:@"TrnLog"])
+       {
+           [db executeSQLCommand:@"ALTER TABLE TrnLog ADD COLUMN ChgData TEXT;"];
+           [ugbl displayPopUpAlert:@"New feature!" withMessage:@"Moving forward, changes to items are now identified more precisely in the Transaction Log"];
+       }
     
     NSString *returnedValue;
      // * if no records in table, this will return a record with NULL value in column 0
@@ -180,8 +194,9 @@
             }
             // edit that row
             aRecord = [viewRecords objectAtIndex:(row-1)];
+            editingNodeID = [[aRecord objectAtIndex:0] integerValue];
             
-            EditItem *tmp = [[EditItem alloc] initForNodeID:[[aRecord objectAtIndex:0] integerValue] withCurrentSnapID:currSnapID];
+            EditItem *tmp = [[EditItem alloc] initForNodeID:editingNodeID withCurrentSnapID:currSnapID];
             // *** (6)
             tmp.delegate = self;
             [[self navigationController] pushViewController:tmp animated:YES];
@@ -190,10 +205,24 @@
 }
 
 // *** (7)
--(void) doPassbackEditItem: (BOOL) wasCancelled
+-(void) doPassbackEditItem: (BOOL) wasCancelled originalContentGlob: (NSString *) theoriginalContentGlob newContentGlob: (NSString *) theNewContentGlob
 {
    
     // ** (lifecycle) order/side effects -- viewWillAppear will fire, implied refresh?
+    // ** we are doing trnlog here to avoid having to instance an a second copy of trnlogger in the edit module, this needs to be redone in the edit module anyway to properly respect incomplete operations, but then the local trnlogger will have wrong maxid
+    //
+    if (!wasCancelled)
+    {
+        [db openDB];
+        NSString *changeData;
+        changeData = theoriginalContentGlob;
+        changeData = [changeData stringByAppendingString:@":"];
+        changeData = [changeData stringByAppendingString:theNewContentGlob];
+        [trnLogger logStartEditTransactionOfNodeID:editingNodeID withChangeData:changeData];
+        [trnLogger logEndTransaction];
+        [db closeDB];
+    }
+    
     refreshDueToEdit = !wasCancelled;
     [self.navigationController popViewControllerAnimated:NO];
 }

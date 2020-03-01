@@ -33,6 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
    
     NSMutableArray *levelStack;
     NSInteger displayMode;
+    NSInteger editingNodeID;
     BOOL refreshDueToEdit;
 }
 

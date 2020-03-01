@@ -21,6 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 -(NSDate *) dateFromSortable: (NSString *) theSortableDate;
 -(NSDate *) todaysDate;
 -(NSInteger) daysBetweenDate: (NSDate *) firstDate and: (NSDate *) secondDate;
+-(NSString *) encodeString: (NSString *) theString toAvoidCharacters: (NSString *) charList;
+-(NSString *) decodeString: (NSString *) theString;
+
 @end
 
 NS_ASSUME_NONNULL_END

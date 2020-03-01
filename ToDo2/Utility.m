@@ -119,4 +119,93 @@
     return [c day];
 }
 
+// ** unicode true careful handling
+-(NSString *) encodeString: (NSString *) theString toAvoidCharacters: (NSString *) charList
+{
+    NSString *newString;
+    NSString *aChar;
+    NSUInteger idx,lastNdx;
+    NSRange r;
+    NSCharacterSet *cs;
+    
+    cs = [NSCharacterSet characterSetWithCharactersInString:[charList stringByAppendingString:@"%"]];
+    
+    newString = @"";
+    // ** for loops will not always run once
+    // ** account for empty strings because lastNdx is unsigned
+    if ([theString isEqualToString:@""])
+    {
+        return @"";
+    }
+    lastNdx = [theString length] - 1;
+    r.length = 1;
+    for (idx = 0; idx <= lastNdx; idx++)
+    {
+        r.location = idx;
+        aChar = [theString substringWithRange:r];
+        //return ([theString rangeOfCharacterFromSet:notdigits].location == NSNotFound);
+        if ([aChar rangeOfCharacterFromSet:cs].location != NSNotFound)
+        {
+            unichar chr = [aChar characterAtIndex:0];
+            newString = [newString stringByAppendingString:@"%"];
+            newString = [newString stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)chr]];
+            newString = [newString stringByAppendingString:@"%"];
+        }
+        else
+        {
+            newString = [newString stringByAppendingString:aChar];
+        }
+    }
+    
+    return newString;
+    
+}
+
+-(NSString *) decodeString: (NSString *) theString
+{
+    NSString *newString;
+    NSString *aChar;
+    NSUInteger idx,lastNdx;
+    NSRange r;
+    NSRange find;
+    NSRange nextFind;
+    NSRange selection;
+    
+    newString = @"";
+    if ([theString isEqualToString:@""])
+       {
+           return @"";
+       }
+    
+    lastNdx = [theString length] - 1;
+    r.length = 1;
+    idx = 0;
+    while (idx <=lastNdx)
+    {
+        r.location = idx;
+        aChar = [theString substringWithRange:r];
+        if ([aChar isEqualToString:@"%"])
+        {
+            nextFind.location = idx+1;
+            // AB%nnn%C
+            // 01234567
+            nextFind.length = lastNdx - idx;
+            find = [theString rangeOfString:@"%" options:NSLiteralSearch range:nextFind];
+            // chars from (idx+1 to find.location-1 inclusive
+            selection.location = (idx+1);
+            selection.length = (find.location-1)-(idx+1)+1;
+            unichar chr = [[theString substringWithRange:selection] integerValue];
+            newString = [newString stringByAppendingString:[NSString stringWithFormat:@"%c", chr]];
+            idx = idx + selection.length+2;
+        }
+        else
+        {
+            newString = [newString stringByAppendingString:aChar];
+            idx +=1;
+        }
+        
+    }
+    
+    return newString;
+}
 @end

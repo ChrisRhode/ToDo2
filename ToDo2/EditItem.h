@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 // *** (1) protocol definition (required/optional)
 @protocol EditItemPassbackDelegate <NSObject>
 
--(void) doPassbackEditItem: (BOOL) wasCancelled;
+-(void) doPassbackEditItem: (BOOL) wasCancelled originalContentGlob: (NSString *) theoriginalContentGlob newContentGlob: (NSString *) theNewContentGlob;
 
 @end
 
@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
     NSInteger currSnapID;
     DBWrapper *db;
     Utility *ugbl;
+    NSString *chgDataOld;
 }
 
 // *** (2)

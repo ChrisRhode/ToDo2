@@ -83,7 +83,7 @@
     NSMutableArray *localRecords;
     
     [db openDB];
-    sql = @"SELECT A.OpCode,A.P1,A.P2,B.ItemText,C.ItemText,A.InProgress FROM TrnLog A LEFT OUTER JOIN Items B ON (B.NodeID = A.P1) AND (B.SnapID = ";
+    sql = @"SELECT A.OpCode,A.P1,A.P2,B.ItemText,C.ItemText,A.InProgress,A.ChgData FROM TrnLog A LEFT OUTER JOIN Items B ON (B.NodeID = A.P1) AND (B.SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") LEFT OUTER JOIN Items C ON (C.NodeID = A.P2) AND (C.SnapID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
@@ -117,7 +117,8 @@
     NSInteger P2;
     // Configure the cell...
    
-    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"TrnLogCell"];
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"TrnLogCell"];
+    cell.detailTextLabel.text = @"";
     
     NSUInteger row;
     row = [indexPath row];
@@ -178,10 +179,66 @@
             break;
         }
         case 5:
+            // change data blob is in column 6
         {
             display = @"Edited '";
             display = [display stringByAppendingString:[aRecord objectAtIndex:3]];
             display = [display stringByAppendingString:@"'"];
+            //
+            NSArray *chgData;
+            NSString *detail;
+            detail = @"";
+            if (![[aRecord objectAtIndex:6] isEqualToString:[db cDBNull]])
+            {
+                chgData =  [[aRecord objectAtIndex:6] componentsSeparatedByString:@":"];
+                NSString *old,*new;
+                old = [chgData objectAtIndex:0];
+                new = [chgData objectAtIndex:1];
+                NSArray *oldItems,*newItems;
+                oldItems = [old componentsSeparatedByString:@"|"];
+                newItems = [new componentsSeparatedByString:@"|"];
+                
+                if (![[oldItems objectAtIndex:0] isEqualToString:[newItems objectAtIndex:0]])
+                {
+                    detail = @"ItemText";
+                }
+                
+                if (![[oldItems objectAtIndex:1] isEqualToString:[newItems objectAtIndex:1]])
+                {
+                    if (![detail isEqualToString:@""])
+                    {
+                        detail = [detail stringByAppendingString:@","];
+                    }
+                    detail = [detail stringByAppendingString:@"Notes"];
+                }
+                if (![[oldItems objectAtIndex:2] isEqualToString:[newItems objectAtIndex:2]])
+                {
+                    if (![detail isEqualToString:@""])
+                    {
+                        detail = [detail stringByAppendingString:@","];
+                    }
+                    detail = [detail stringByAppendingString:@"BumpCtr"];
+                }
+                if (![[oldItems objectAtIndex:3] isEqualToString:[newItems objectAtIndex:3]])
+                {
+                    if (![detail isEqualToString:@""])
+                    {
+                        detail = [detail stringByAppendingString:@","];
+                    }
+                    detail = [detail stringByAppendingString:@"BumpToTopDate"];
+                }
+                if (![[oldItems objectAtIndex:4] isEqualToString:[newItems objectAtIndex:4]])
+                {
+                    if (![detail isEqualToString:@""])
+                    {
+                        detail = [detail stringByAppendingString:@","];
+                    }
+                    detail = [detail stringByAppendingString:@"DateOfEvent"];
+                }
+                cell.detailTextLabel.text = detail;
+            }
+            
+            //
             break;
         }
         default:
@@ -211,7 +268,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL);"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -231,7 +288,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL);"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -249,7 +306,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL);"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -267,7 +324,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL);"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -288,22 +345,23 @@
     [db closeDB];
 }
 
--(void) logStartEditTransactionOfNodeID : (NSInteger) nodeID
+-(void) logStartEditTransactionOfNodeID : (NSInteger) nodeID withChangeData : (NSString *) theChangeData
 {
 
     currMaxTrnLogSeqNum +=1;
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,?);"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)(5)]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)(1)]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)nodeID]];
+     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:theChangeData];
     [db doCommandWithParamsEnd];
-        [db closeDB];
+    [db closeDB];
 }
 -(void) logEndTransaction
 {

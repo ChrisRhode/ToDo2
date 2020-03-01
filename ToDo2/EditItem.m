@@ -51,14 +51,28 @@
     sql = [sql stringByAppendingString:@");"];
     [db doSelect:sql records:&localRecords];
     [db closeDB];
-    theDBRecord = [[localRecords objectAtIndex:0] mutableCopy];
-    _txtItemText.text = [theDBRecord objectAtIndex:0];
     
+    theDBRecord = [[localRecords objectAtIndex:0] mutableCopy];
+    
+    _txtItemText.text = [theDBRecord objectAtIndex:0];
+    chgDataOld = [ugbl encodeString:[theDBRecord objectAtIndex:0] toAvoidCharacters:@"|:"];
+    chgDataOld = [chgDataOld stringByAppendingString:@"|"];
     _txtviewNotes.text = [db dbNullToEmptyString:[theDBRecord objectAtIndex:1]];
     _txtviewNotes.backgroundColor = [UIColor lightGrayColor];
+    chgDataOld = [chgDataOld stringByAppendingString:[ugbl encodeString:[db dbNullToEmptyString:[theDBRecord objectAtIndex:1]] toAvoidCharacters:@"|:"]];
+    chgDataOld = [chgDataOld stringByAppendingString:@"|"];
+    
     _txtBumpCtr.text = [NSString stringWithFormat:@"%ld", (long)[[theDBRecord objectAtIndex:2] integerValue]];
+    chgDataOld = [chgDataOld stringByAppendingString:[ugbl encodeString:[NSString stringWithFormat:@"%ld", (long)[[theDBRecord objectAtIndex:2] integerValue]] toAvoidCharacters:@"|:"]];
+    chgDataOld = [chgDataOld stringByAppendingString:@"|"];
+    
     _txtBumpToTopDate.text = [ugbl dateSortableToHuman:[db dbNullToEmptyString:[theDBRecord objectAtIndex:3]]];
+    // * encode dates in change data in Sortable format
+    chgDataOld = [chgDataOld stringByAppendingString:[ugbl encodeString:[db dbNullToEmptyString:[theDBRecord objectAtIndex:3]] toAvoidCharacters:@"|:"]];
+    chgDataOld = [chgDataOld stringByAppendingString:@"|"];
+    
     _txtDateOfEvent.text = [ugbl dateSortableToHuman:[db dbNullToEmptyString:[theDBRecord objectAtIndex:4]]];
+    chgDataOld = [chgDataOld stringByAppendingString:[ugbl encodeString:[db dbNullToEmptyString:[theDBRecord objectAtIndex:4]] toAvoidCharacters:@"|:"]];
 }
 
 /*
@@ -198,6 +212,27 @@
     // ** nullable yes or no on records return
     
     [db openDB];
+    
+    // block up new values for trn log
+       // ***********
+    NSString *chgDataNew;
+    
+         chgDataNew = [ugbl encodeString:newItemText toAvoidCharacters:@"|:"];
+         chgDataNew = [chgDataNew stringByAppendingString:@"|"];
+         
+         chgDataNew = [chgDataNew stringByAppendingString:[ugbl encodeString:newNotes toAvoidCharacters:@"|:"]];
+         chgDataNew = [chgDataNew stringByAppendingString:@"|"];
+         
+         chgDataNew = [chgDataNew stringByAppendingString:[ugbl encodeString:newBumpCtr toAvoidCharacters:@"|:"]];
+         chgDataNew = [chgDataNew stringByAppendingString:@"|"];
+         
+         chgDataNew = [chgDataNew stringByAppendingString:[ugbl encodeString:newBumpToTopDate toAvoidCharacters:@"|:"]];
+         chgDataNew = [chgDataNew stringByAppendingString:@"|"];
+         
+         chgDataNew = [chgDataNew stringByAppendingString:[ugbl encodeString:newDateOfEvent toAvoidCharacters:@"|:"]];
+       
+       // ***********
+    
     [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=?,DateOfEvent=? WHERE (SnapID = ?) AND (NodeID = ?);"];
     [db doCommandWithParamsAddParameterOfType:@"S" paramValue:newItemText];
     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:newNotes];
@@ -210,13 +245,11 @@
     [db closeDB];
     
     // *** (3)
-    [self.delegate doPassbackEditItem: NO];
+    [self.delegate doPassbackEditItem: NO originalContentGlob:chgDataOld newContentGlob:chgDataNew];
 }
-
 
 - (IBAction)btnCancelPressed:(id)sender {
-     [self.delegate doPassbackEditItem: YES];
+     [self.delegate doPassbackEditItem: YES originalContentGlob:@"" newContentGlob:@""];
 }
-
 
 @end
