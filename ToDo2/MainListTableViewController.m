@@ -274,7 +274,11 @@
     NSInteger thisNodeID;
     
     sortData = [[NSMutableArray alloc] init];
-    
+    // 1.2 fix for the abuse of zero records = -1
+    if ([*recordList count] == 0)
+    {
+        return [*recordList copy];
+    }
     lastNdx = [*recordList count] - 1;
     // first get maximum bumpctr
     maxBumpCtr = 0;
