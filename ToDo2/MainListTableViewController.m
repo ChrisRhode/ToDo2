@@ -5,7 +5,6 @@
 //  Created by Christopher Rhode on 2/19/20.
 //  Copyright © 2020 Christopher Rhode. All rights reserved.
 //
-
 // ** ability to show deleted items
 //   ** will also allow recovery of deleted items
 //   ** true delete will create NodeID holes, may be issue if MaxID
@@ -63,9 +62,10 @@
     tmpv.contentMode = UIViewContentModeCenter;
     tmpv.alpha = 0.05;
     self.tableView.backgroundView = tmpv;
-                     
-    UIBarButtonItem *tmp1 = [[UIBarButtonItem alloc] initWithTitle:@"TrnLog" style:UIBarButtonItemStylePlain target:self action:@selector(handleDisplayTrnLog)];
-    self.navigationItem.rightBarButtonItems = @[tmp1]; // inserts right to left
+            
+    [self setTopButtons];
+    
+  
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -155,6 +155,24 @@
     [levelStack addObject:tmp];
 }
 
+-(void) setTopButtons
+{
+    NSString *lbl;
+    if (displayMode == 3)
+    {
+        lbl = @"->Items";
+    }
+    else
+    {
+        lbl = @"->Dates";
+    }
+    
+    UIBarButtonItem *tmp1 = [[UIBarButtonItem alloc] initWithTitle:@"TrnLog" style:UIBarButtonItemStylePlain target:self action:@selector(handleDisplayTrnLog)];
+    UIBarButtonItem *tmp2 = [[UIBarButtonItem alloc] initWithTitle:lbl style:UIBarButtonItemStylePlain target:self action:@selector(handleToggleItemsDates)];
+      
+      self.navigationItem.rightBarButtonItems = @[tmp1,tmp2]; // inserts right to left
+}
+
 -(void) viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
@@ -241,19 +259,32 @@
     [db openDB];
     sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
-    sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
-    sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
-    // **** old sql term
-    // sql = [sql stringByAppendingString:@") AND (isDeleted = 0) ORDER BY BumpCtr DESC,NodeID;"];
-    sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
-    
+    if (displayMode == 3)
+    {
+        sql = [sql stringByAppendingString:@") AND (isDeleted = 0) AND ((DateOfEvent IS NOT NULL) OR (BumpToTopDate IS NOT NULL)) ORDER BY COALESCE(DateOfEvent,BumpToTopDate);"];
+    }
+    else
+    {
+        sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
+           sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
+           // **** old sql term
+           // sql = [sql stringByAppendingString:@") AND (isDeleted = 0) ORDER BY BumpCtr DESC,NodeID;"];
+           sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
+    }
+   
     // * have to use variable local to this scope then copy to instance variable
     [db doSelect:sql records:&localRecords];
     [db closeDB];
-    // ***** resort the table based on combo of BumpCtr,BumpToTopDate,DateOfEvent
-   viewRecords = [self sortTheRecords:&localRecords];
-    // ** can viewRecords be non Mutable?  what is common convention?
-    //viewRecords = [localRecords mutableCopy];
+    // ***** resort the table based on combo of BumpCtr,BumpToTopDate,DateOfEvent if not DateReview mode
+    if (displayMode != 3)
+    {
+        viewRecords = [self sortTheRecords:&localRecords];
+    }
+    else
+    {
+        viewRecords = [localRecords mutableCopy];
+    }
+    
     if (forceReload)
     {
         [self.tableView reloadData];
@@ -380,10 +411,35 @@
 -(void)handleDisplayTrnLog
 
 {
+    if (displayMode == 2)
+    {
+        return;
+    }
     TrnLogManagerTableViewController *tmp = [[TrnLogManagerTableViewController alloc] initForViewWithCurrSnapID:currSnapID];
     [[self navigationController] pushViewController:tmp animated:YES];
     // ** any special handling for "back via back button"?
     // ** fix EditItem so back via back button does the right things ... treat as OK or Cancel?
+}
+
+-(void)handleToggleItemsDates
+{
+    if (displayMode == 2)
+    {
+        return;
+    }
+    if (displayMode == 3)
+    {
+        displayMode = 1;
+        searchOrAdd.enabled = YES;
+    }
+    else
+    {
+        displayMode = 3;
+        searchOrAdd.enabled = NO;
+    }
+    
+    [self setTopButtons];
+    [self loadOrReloadCurrentItemView:YES];
 }
 
 - (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -437,7 +493,7 @@
     UIContextualAction *aBump,*aDelete,*aGray;
     // * instance vs class methods
     
-    if (displayMode != 2)
+    if (displayMode == 1)
     {
         aBump = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Bump" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
             
@@ -595,7 +651,18 @@
     row = [indexPath row];
     if (row == 0)
     {
-        cell.textLabel.text = [@"(" stringByAppendingString:[currParentNodeText stringByAppendingString:@")"]];
+        NSString *lbl;
+        lbl = @"";
+        if (currParentNodeID != 0)
+        {
+            lbl = [lbl stringByAppendingString:@"<-"];
+        }
+        lbl = [lbl stringByAppendingString:@"("];
+        lbl = [lbl stringByAppendingString:currParentNodeText];
+        lbl = [lbl stringByAppendingString:@")"];
+        
+        
+        cell.textLabel.text = lbl;
     }
     else
     {
@@ -721,8 +788,9 @@
                 break;
             }
             case 2:
+            case 3:
             {
-                // we are in search mode
+                // we are in search mode or Calendar mode
                 // have to rebuild the levelStack based on this node
                 NSMutableArray *reverseStack;
                 NSMutableArray *localRecords;
@@ -737,6 +805,8 @@
                 nodeText = [aRecord objectAtIndex:2];
                 tmp = [[NSArray alloc] initWithObjects:[NSNumber numberWithInteger:nodeID] , nodeText, nil];
                 [reverseStack addObject:tmp];
+                // so element 0 is now "this node is parent"
+                
                 // now walk up all parents
                 [db openDB];
                 stop = NO;
@@ -776,20 +846,20 @@
                 NSInteger startIdx;
                 [levelStack removeAllObjects];
                 startIdx = [reverseStack count] - 1;
-                if (startIdx > 1)
+                for (idx = startIdx; idx>=0; idx--)
                 {
-                    for (idx = startIdx;idx>=1;idx--)
-                    {
-                        [levelStack addObject:[reverseStack objectAtIndex:idx]];
-                    }
+                    [levelStack addObject:[reverseStack objectAtIndex:idx]];
                 }
                 NSArray *tmp2;
                 tmp2 = [reverseStack objectAtIndex:0];
                 
                 currParentNodeID = [(NSNumber *)[tmp2 objectAtIndex:0] intValue];
                 currParentNodeText = [tmp2 objectAtIndex:1];
+               
                 displayMode = 1;
-                searchOrAdd.text = @"";
+                [self setTopButtons];
+                
+                
                 [self loadOrReloadCurrentItemView:YES];
                 
                 break;
@@ -801,8 +871,17 @@
             }
         }
     }
+    searchOrAdd.text = @"";
+    // ** trick per internet to make the keyboard go away if it's up
+    searchOrAdd.enabled = NO;
+    searchOrAdd.enabled = YES;
 }
-
+// ** if in search mode, disallow certain things
+// if we come into thus routine we are in 1 or 2
+// ** treat 2 and 3 as search mode for purposes of disabling things
+// ** we can't use Dates as a searchable right now because
+// **   then when we start searching it switches to mode 2.  For now disable search when in mode 3.
+// ** what happens if we search while descending ... does it reset to a level 0 search?
 -(void)textFieldDidChangeSelection:(UITextField *)textField
 {
     NSString *tmp;
@@ -818,7 +897,9 @@
         sql = [sql stringByAppendingString:tmp];
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
+        sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
         sql = [sql stringByAppendingString:@") ORDER BY NodeID;"];
+        
         // have to use variable local to this scope then copy to instance variable
         [db doSelect:sql records:&localRecords];
         [db closeDB];
@@ -840,6 +921,7 @@
     tmp = [textField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     if ([tmp isEqualToString:@""])
     {
+        [textField resignFirstResponder];
         return NO;
     }
     
@@ -875,6 +957,7 @@
     [textField resignFirstResponder];
     // ** (lifecycle) apparently list refrehes without need to force it?
     displayMode = 1;
+    [self setTopButtons];
     // ** displayMode management after add
     [self loadOrReloadCurrentItemView:YES];
     
