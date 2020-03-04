@@ -15,6 +15,9 @@
 
 @implementation EditItem
 // ** check for db isolation everywhere used
+
+
+
 -(id) initForNodeID: (NSInteger) nodeID withCurrentSnapID: (NSInteger) snapID
 {
     if (self = [super init])
@@ -31,6 +34,8 @@
         return nil;
     }
 }
+
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -153,6 +158,60 @@
         
     }
 }
+
+- (IBAction)btnEditDateOfEvent:(id)sender {
+    NSString *tmps;
+    tmps = [_txtDateOfEvent.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    if (![tmps isEqualToString:@""])
+    {
+        if (![ugbl doesContainValidHumanDate:tmps])
+        {
+             [ugbl displayPopUpAlert:@"Error" withMessage:@"DateOfEvent Date must be a valid date"];
+            return;
+        }
+    }
+    DatePicker *tmp = [[DatePicker alloc] initWithHumanDate:tmps withItemShortDescription:@"Date of Event"];
+    tmp.delegate = self;
+    dateBeingEdited = 1;
+      [[self navigationController] pushViewController:tmp animated:YES];
+    
+}
+
+- (IBAction)btnEditBumpToTopDate:(id)sender {
+    NSString *tmps;
+      tmps = [_txtBumpToTopDate.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+      if (![tmps isEqualToString:@""])
+      {
+          if (![ugbl doesContainValidHumanDate:tmps])
+          {
+               [ugbl displayPopUpAlert:@"Error" withMessage:@"BumpToTop Date must be a valid date"];
+              return;
+          }
+      }
+      DatePicker *tmp = [[DatePicker alloc] initWithHumanDate:tmps withItemShortDescription:@"Bump To Top Date"];
+      tmp.delegate = self;
+      dateBeingEdited = 2;
+        [[self navigationController] pushViewController:tmp animated:YES];
+}
+
+
+-(void) doPassbackDatePicker: (NSString *) theHumanDate cancelWasTapped: (BOOL) wasCancelled
+{
+    if (!wasCancelled)
+    {
+        if (dateBeingEdited == 1)
+        {
+            _txtDateOfEvent.text = theHumanDate;
+        }
+        else
+        {
+            _txtBumpToTopDate.text = theHumanDate;
+        }
+        
+    }
+     [self.navigationController popViewControllerAnimated:NO];
+}
+
 - (IBAction)btnOKPressed:(id)sender {
    // do the db update here
     

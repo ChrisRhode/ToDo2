@@ -21,6 +21,21 @@
     return tmp;
     
 }
+-(NSDate *) dateHumanDateToDate: (NSString *) theDate
+{
+     NSDateFormatter *df = [[NSDateFormatter alloc] init];
+       [df setDateFormat:@"MM/dd/yyyy"];
+    NSDate *d = [df dateFromString:theDate];
+    return d;
+}
+
+-(NSString *) dateToHumanDate: (NSDate *) theDate
+{
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"MM/dd/yyyy"];
+    return [df stringFromDate:theDate];
+    
+}
 
 // Human: MM/DD/YYYY Sortable: YYYY-MM-DD
 -(NSString *) dateHumanToSortable: (NSString *) sourceDate

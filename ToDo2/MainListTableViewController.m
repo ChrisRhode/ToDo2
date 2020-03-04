@@ -41,6 +41,8 @@
     ugbl = [[Utility alloc] init];
     
     // ****** testing
+   // NSString *tstring;
+    //tstring = [ugbl dateHumanToSortable:@"03/03/2020"];
 //    NSString *tstring;
 //    tstring = @"Hello|W%orld|";
 //    tstring = [ugbl encodeString:tstring toAvoidCharacters:@"|"];

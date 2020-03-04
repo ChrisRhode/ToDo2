@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface Utility : NSObject
 
 -(NSString *) getDocumentsDirectory;
+-(NSDate *) dateHumanDateToDate: (NSString *) theDate;
+-(NSString *) dateToHumanDate: (NSDate *) theDate;
 -(NSString *) dateHumanToSortable: (NSString *) sourceDate;
 -(NSString *) dateSortableToHuman: (NSString *) sourceDate;
 -(BOOL) doesContainValidNonNegativeInteger: (NSString *) theString;

@@ -10,6 +10,7 @@
 #import "DBWrapper.h"
 #import "Utility.h"
 #import "TextViewEditor.h"
+#import "DatePicker.h"
 
 // ** look up NS_ASSUME_NONNULL_BEGIN
 // ** can we manage currSnapID as a global better somehow?
@@ -22,13 +23,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface EditItem : UIViewController<TextViewEditorPassbackDelegate>
+@interface EditItem : UIViewController<TextViewEditorPassbackDelegate,DatePickerPassbackDelegate>
 {
     NSInteger ourNodeID;
     NSInteger currSnapID;
     DBWrapper *db;
     Utility *ugbl;
     NSString *chgDataOld;
+    NSInteger dateBeingEdited;
 }
 
 // *** (2)
@@ -48,7 +50,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (IBAction)btnBumpCtrIncreasePressed:(id)sender;
 - (IBAction)btnBumpCtrDecreasePressed:(id)sender;
 // ** implement date picker (spinners / calendar view)
+- (IBAction)btnEditDateOfEvent:(id)sender;
+
 -(id) initForNodeID: (NSInteger) nodeID withCurrentSnapID: (NSInteger) snapID;
+- (IBAction)btnEditBumpToTopDate:(id)sender;
 
 @end
 
