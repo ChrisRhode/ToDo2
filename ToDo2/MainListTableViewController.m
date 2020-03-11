@@ -5,17 +5,6 @@
 //  Created by Christopher Rhode on 2/19/20.
 //  Copyright © 2020 Christopher Rhode. All rights reserved.
 //
-// ** ability to show deleted items
-//   ** will also allow recovery of deleted items
-//   ** true delete will create NodeID holes, may be issue if MaxID
-// ** why does .m also have an interface section?
-// ** All NSNumber casts/fixes, intValue vs integerValue
-// ** auto vs forced reload deep understanding
-// ** trnlog problem when text is edited, it shows the current itemtext value even in history
-//   ** add trnlog discrete item field changes old and new
-// ** disable multiple scenes if enabled
-// ** better subannotations: Notes icon, SubViews, show/hide
-// ** NSArray vs NSMutableArray, pass by value vs reference, returning as function type
 // TrnLogManagerTableViewController is now used in two ways
 //   (1) As a utility class for making all transaction log entries
 //   (2) As a pushed view to display the transaction log contents
@@ -41,8 +30,10 @@
     ugbl = [[Utility alloc] init];
     
     // ****** testing
-   // NSString *tstring;
-    //tstring = [ugbl dateHumanToSortable:@"03/03/2020"];
+    //NSString *tstring;
+   // tstring = [ugbl dateToAugmentedHumanDate:[NSDate date]];
+   // NSDate *d;
+   // d = [ugbl dateAugmentedHumanDateToDate:tstring];
 //    NSString *tstring;
 //    tstring = @"Hello|W%orld|";
 //    tstring = [ugbl encodeString:tstring toAvoidCharacters:@"|"];
@@ -52,14 +43,9 @@
     refreshDueToEdit = NO;
     displayMode = 1;
     //self.title = @"ToDo by Chris Rhode";
-    
-    // ** need to figure out why image could not be found in assets; also can JPEG/JPG be used instead of PNG
-    // ** clearcolor not needed for tableView itself ??
-    // ** using [x setyyy vs x.yyy =
-    
+        
     // later, tableview cells are set to background clearcolor so image shows behind them
     UIImageView *tmpv = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"DAT2.png"]];
-    // ** understand the setFrame
     [tmpv setFrame:self.tableView.frame];
     tmpv.contentMode = UIViewContentModeCenter;
     tmpv.alpha = 0.05;
@@ -97,11 +83,7 @@
     
     db = [[DBWrapper alloc] initForDbFile:@"ToDoDb"];
     [db openDB];
-    // ** test for status on things that return status / exception handling
-    // ** architecture for database schema updates
-    // ** bump ordering vs fixed ordering
-    
-    
+   
     [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, DateOfEvent TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID));"];
     // 1.0 to 1.1
     if (![db columnExists:@"DateOfEvent" inTable:@"Items"])
@@ -119,7 +101,6 @@
     
     NSString *returnedValue;
      // * if no records in table, this will return a record with NULL value in column 0
-    // ** NSString as "default type" for NSArray items?!
     
     [db doSelect:@"SELECT MAX(SnapID) FROM Items;" records:&localRecords];
     returnedValue = [[localRecords objectAtIndex:0] objectAtIndex:0];
@@ -149,7 +130,6 @@
     levelStack = [[NSMutableArray alloc] init];
     NSArray *tmp;
     // levelStack: NSNumber ParentNodeID, NSString *ParentNodeText
-    // ** handle or don't per row edits in browse vs search mode
    
     currParentNodeID = 0;
     currParentNodeText = @"$root$";
@@ -228,7 +208,6 @@
 -(void) doPassbackEditItem: (BOOL) wasCancelled originalContentGlob: (NSString *) theoriginalContentGlob newContentGlob: (NSString *) theNewContentGlob
 {
    
-    // ** (lifecycle) order/side effects -- viewWillAppear will fire, implied refresh?
     // ** we are doing trnlog here to avoid having to instance an a second copy of trnlogger in the edit module, this needs to be redone in the edit module anyway to properly respect incomplete operations, but then the local trnlogger will have wrong maxid
     //
     if (!wasCancelled)
@@ -252,12 +231,6 @@
     NSString *sql;
     NSMutableArray *localRecords;
     
-    
-    // ** partial index use of primary key / indexes on other fields
-    // ** full text indexing on ItemText?
-    // ** use isXXX or isNotxxxx for booleans as DB field names
-    //   ** change InProgress to isInProgress
-    
     [db openDB];
     sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
@@ -269,8 +242,6 @@
     {
         sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
-           // **** old sql term
-           // sql = [sql stringByAppendingString:@") AND (isDeleted = 0) ORDER BY BumpCtr DESC,NodeID;"];
            sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
     }
    
@@ -419,8 +390,6 @@
     }
     TrnLogManagerTableViewController *tmp = [[TrnLogManagerTableViewController alloc] initForViewWithCurrSnapID:currSnapID];
     [[self navigationController] pushViewController:tmp animated:YES];
-    // ** any special handling for "back via back button"?
-    // ** fix EditItem so back via back button does the right things ... treat as OK or Cancel?
 }
 
 -(void)handleToggleItemsDates
@@ -454,7 +423,6 @@
     
     // top row allows go to root, if not at root now
     // ** disallow if in search mode?
-    // ** handlers should return YES or NO ?!
     
     if (row == 0)
     {
@@ -502,13 +470,9 @@
             NSInteger nodeID;
             NSArray *aRecord;
             NSString *sql;
-            // ** understand use of self
-             // ** () usage for self-> as example
             
             aRecord = [self->viewRecords objectAtIndex:(row-1)];
            
-            // ** check for use of string decode for all fields always
-            // ** consistent use of ; at end of SQL statements
             nodeID = [(NSString *)[aRecord objectAtIndex:0] integerValue];
             
             [self->trnLogger logStartBumpTransactionOfNodeID:nodeID];
@@ -604,7 +568,6 @@
         // Now return all the appropriate swipe actions
         UISwipeActionsConfiguration *actions;
         
-        // ** may eventually want to allow delete of node with children
         if (childCount != 0)
         {
             actions = [UISwipeActionsConfiguration configurationWithActions:@[aBump,aGray]];
@@ -642,7 +605,7 @@
     NSArray *aRecord;
     
     // Configure the cell...
-    // ** reusable cell stuff, is this the new auto way?
+
     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"MainListCell"];
     
     // * needed for background image to show through cells
@@ -717,7 +680,7 @@
                            annotations = [annotations stringByAppendingString:@","];
                            
                        }
-                        annotations = [annotations stringByAppendingString:[@"BumpToTop " stringByAppendingString:[ugbl dateSortableToHuman:aDate]]];
+                        annotations = [annotations stringByAppendingString:[@"BumpToTop " stringByAppendingString:[ugbl dateSortableToAugmentedHuman:aDate]]];
             // * earlier date must be first
             // [u todaysDate]
             // [u dateFromSortable:aDate ]
@@ -734,7 +697,7 @@
                                   annotations = [annotations stringByAppendingString:@","];
                                   
                               }
-                               annotations = [annotations stringByAppendingString:[@"DateOfEvent " stringByAppendingString:[ugbl dateSortableToHuman:aDate]]];
+                               annotations = [annotations stringByAppendingString:[@"DateOfEvent " stringByAppendingString:[ugbl dateSortableToAugmentedHuman:aDate]]];
                    annotations = [annotations stringByAppendingString:@" ("];
                               annotations = [annotations stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)[ugbl daysBetweenDate:[ugbl todaysDate] and: [ugbl dateFromSortable:aDate]]]];
                                annotations = [annotations stringByAppendingString:@"d)"];
@@ -744,13 +707,14 @@
         cell.detailTextLabel.text = annotations;
     }
     cell.textLabel.adjustsFontSizeToFitWidth = YES;
+    cell.detailTextLabel.adjustsFontSizeToFitWidth = YES;
     
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // ** handle if node tapped during incremental search
+   
     NSUInteger row;
     NSArray *aRecord;
     
@@ -867,7 +831,7 @@
                 break;
             }
             default:
-                // ** exception for default clauses
+               
             {
                 break;
             }
@@ -878,12 +842,7 @@
     searchOrAdd.enabled = NO;
     searchOrAdd.enabled = YES;
 }
-// ** if in search mode, disallow certain things
-// if we come into thus routine we are in 1 or 2
-// ** treat 2 and 3 as search mode for purposes of disabling things
-// ** we can't use Dates as a searchable right now because
-// **   then when we start searching it switches to mode 2.  For now disable search when in mode 3.
-// ** what happens if we search while descending ... does it reset to a level 0 search?
+
 -(void)textFieldDidChangeSelection:(UITextField *)textField
 {
     NSString *tmp;
@@ -927,7 +886,6 @@
         return NO;
     }
     
-    // ** convert to virtual operations (for undo, transaction verification etc.
     
     [trnLogger logStartAddTransactionOfNodeID:(currMaxNodeID+1) parentNodeID:currParentNodeID];
     [db openDB];
@@ -957,7 +915,7 @@
     
     textField.text = @"";
     [textField resignFirstResponder];
-    // ** (lifecycle) apparently list refrehes without need to force it?
+    // ** (lifecycle) apparently list refreshes without need to force it?
     displayMode = 1;
     [self setTopButtons];
     // ** displayMode management after add

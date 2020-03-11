@@ -15,8 +15,12 @@ NS_ASSUME_NONNULL_BEGIN
 -(NSString *) getDocumentsDirectory;
 -(NSDate *) dateHumanDateToDate: (NSString *) theDate;
 -(NSString *) dateToHumanDate: (NSDate *) theDate;
+-(BOOL) doesContainValidAugmentedHumanDate: (NSString *) theString;
+-(NSDate *) dateAugmentedHumanDateToDate: (NSString *) theDate;
+-(NSString *) dateToAugmentedHumanDate: (NSDate *) theDate;
 -(NSString *) dateHumanToSortable: (NSString *) sourceDate;
 -(NSString *) dateSortableToHuman: (NSString *) sourceDate;
+-(NSString *) dateSortableToAugmentedHuman: (NSString *) sourceDate;
 -(BOOL) doesContainValidNonNegativeInteger: (NSString *) theString;
 -(BOOL) doesContainValidHumanDate: (NSString *) theString;
 -(void) displayPopUpAlert: (NSString *) theTitle withMessage: (NSString *) theMessage;

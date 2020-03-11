@@ -15,9 +15,9 @@
     // ** latest iteration of doing away with storyboards
     // ** learned the hard way by not properly understanding Swift coding samples
     // ** do not create a new scene, the scene is passed in
-    // ** then create the window usingh initWithWindowScene instead of initWithFrame
-    // ** you have to case the scene to a UIWindowScene
-    // ** if you don't do all this, it will work but keyboard input to text boxes will not
+    // ** then create the window using initWithWindowScene instead of initWithFrame
+    // ** you have to cast the scene to a UIWindowScene
+    // ** if you don't do all this, it will seem to work mostly, but keyboard input to text boxes will not
     // hierarchy: UINavigationController -> UITableViewController
     
     UINavigationController *rootNAV;

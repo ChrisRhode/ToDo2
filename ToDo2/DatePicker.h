@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (weak, nonatomic) IBOutlet UILabel *lblWhatThisIs;
 @property (weak, nonatomic) IBOutlet UITextField *txtDate;
+- (IBAction)btnCheck:(id)sender;
+
 - (IBAction)btnToday:(id)sender;
 - (IBAction)btnTomorrow:(id)sender;
 - (IBAction)btnAdd1d:(id)sender;

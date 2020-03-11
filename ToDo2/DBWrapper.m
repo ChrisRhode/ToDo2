@@ -233,7 +233,6 @@
     sql = [sql stringByAppendingString:tableName];
     sql = [sql stringByAppendingString:@");"];
     
-    // ** use NSArray for entire chain?
     [self doSelect:sql records:&localRecords];
     lastNdx = [localRecords count] - 1;
     for (idx = 0; idx <= lastNdx; idx++)

@@ -12,8 +12,6 @@
 #import "TextViewEditor.h"
 #import "DatePicker.h"
 
-// ** look up NS_ASSUME_NONNULL_BEGIN
-// ** can we manage currSnapID as a global better somehow?
 NS_ASSUME_NONNULL_BEGIN
 
 // *** (1) protocol definition (required/optional)
@@ -36,7 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
 // *** (2)
 @property (nonatomic,weak) id <EditItemPassbackDelegate> delegate;
 // *** (2.5) any properties for pushing in or out values etc
-// ** proper attributes for all properties ... understand copy
 //
 @property (weak, nonatomic) IBOutlet UITextField *txtItemText;
 @property (weak, nonatomic) IBOutlet UITextView *txtviewNotes;
@@ -49,7 +46,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (IBAction)btnEditNotesPressed:(id)sender;
 - (IBAction)btnBumpCtrIncreasePressed:(id)sender;
 - (IBAction)btnBumpCtrDecreasePressed:(id)sender;
-// ** implement date picker (spinners / calendar view)
 - (IBAction)btnEditDateOfEvent:(id)sender;
 
 -(id) initForNodeID: (NSInteger) nodeID withCurrentSnapID: (NSInteger) snapID;

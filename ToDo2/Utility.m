@@ -13,7 +13,7 @@
 
 -(NSString *) getDocumentsDirectory
 {
-    // **NOTE: Allegedly should use NSURL URLsForDirectory for iOS 8 and greater
+   
     NSString *tmp;
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     tmp = [[paths objectAtIndex:0] stringByAppendingString:@"/"];
@@ -37,6 +37,31 @@
     
 }
 
+-(BOOL) doesContainValidAugmentedHumanDate: (NSString *) theString
+{
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+   
+    [df setDateFormat:@"EEEEEE MM/dd/yyyy"];
+    NSDate *d = [df dateFromString:theString];
+    return (d != nil);
+}
+
+-(NSDate *) dateAugmentedHumanDateToDate: (NSString *) theDate
+{
+     NSDateFormatter *df = [[NSDateFormatter alloc] init];
+       [df setDateFormat:@"EEEEEE MM/dd/yyyy"];
+    NSDate *d = [df dateFromString:theDate];
+    return d;
+}
+
+-(NSString *) dateToAugmentedHumanDate: (NSDate *) theDate
+{
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"EEEEEE MM/dd/yyyy"];
+    return [df stringFromDate:theDate];
+    
+}
+
 // Human: MM/DD/YYYY Sortable: YYYY-MM-DD
 -(NSString *) dateHumanToSortable: (NSString *) sourceDate
 {
@@ -50,7 +75,7 @@
         NSArray *pieces;
         
         pieces = [sourceDate componentsSeparatedByString:@"/"];
-        // ** implicit treatment as string ok?
+     
         result = [NSString stringWithFormat:@"%04ld", (long)[[pieces objectAtIndex:2] integerValue]];
         result = [result stringByAppendingString:@"-"];
         result = [result stringByAppendingString:[NSString stringWithFormat:@"%02ld", (long)[[pieces objectAtIndex:0] integerValue]]];
@@ -83,6 +108,17 @@
        }
 }
 
+-(NSString *) dateSortableToAugmentedHuman: (NSString *) sourceDate;
+{
+    NSString *tmp = [self dateSortableToHuman:sourceDate];
+    if ([tmp isEqualToString:@""])
+    {
+        return @"";
+    }
+    NSDate *d = [self dateHumanDateToDate:tmp];
+    return [self dateToAugmentedHumanDate:d];
+}
+
 -(BOOL) doesContainValidNonNegativeInteger: (NSString *) theString
 {
     // ** there may be better ways to do this
@@ -93,14 +129,14 @@
 -(BOOL) doesContainValidHumanDate: (NSString *) theString
 {
     NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    // ** will it fail if leading zeroes are missing for MM or DD?
+  
     [df setDateFormat:@"MM/dd/yyyy"];
     NSDate *d = [df dateFromString:theString];
     return (d != nil);
 }
 
 -(void) displayPopUpAlert: (NSString *) theTitle withMessage: (NSString *) theMessage
-// ** is this "ok" forcing a UI function in a non UI sublcass
+
 {
     UIAlertController *ac = [UIAlertController alertControllerWithTitle:theTitle message:theMessage preferredStyle: UIAlertControllerStyleAlert];
     UIAlertAction *ok = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
@@ -134,7 +170,6 @@
     return [c day];
 }
 
-// ** unicode true careful handling
 -(NSString *) encodeString: (NSString *) theString toAvoidCharacters: (NSString *) charList
 {
     NSString *newString;
@@ -146,8 +181,7 @@
     cs = [NSCharacterSet characterSetWithCharactersInString:[charList stringByAppendingString:@"%"]];
     
     newString = @"";
-    // ** for loops will not always run once
-    // ** account for empty strings because lastNdx is unsigned
+ 
     if ([theString isEqualToString:@""])
     {
         return @"";

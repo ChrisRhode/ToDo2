@@ -33,7 +33,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    _txtDate.text = saveDateText;
+    _txtDate.text =  [self HumanDateToAugmentedHumanDate:saveDateText];
     _txtDate.clearButtonMode = YES;
     _lblWhatThisIs.text = saveItemDescription;
 }
@@ -48,9 +48,67 @@
 }
 */
 
+-(BOOL) checkAndUpdateTextFieldContent
+{
+    NSString *tmp;
+    tmp =  _txtDate.text;
+    tmp = [tmp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    if ([tmp isEqualToString:@""])
+    {
+        _txtDate.text = @"";
+        return YES;
+    }
+    // if the day is there strip it out
+    NSArray *a;
+    a = [tmp componentsSeparatedByString:@" "];
+    if ([a count] == 2)
+    {
+        tmp = [a objectAtIndex:1];
+    }
+    if ([ugbl doesContainValidHumanDate:tmp])
+    {
+        NSDate *d;
+        d = [ugbl dateHumanDateToDate:tmp];
+        _txtDate.text = [ugbl dateToAugmentedHumanDate:d];
+        return YES;
+    }
+    [ugbl displayPopUpAlert:@"Error" withMessage:@"Date must be a valid date"];
+    return NO;
+}
+
+-(NSString *) HumanDateToAugmentedHumanDate: (NSString *) humanDate
+{
+    NSDate *d;
+    
+    if ([humanDate isEqualToString:@""])
+    {
+        return @"";
+    }
+    d = [ugbl dateHumanDateToDate:humanDate];
+    return [ugbl dateToAugmentedHumanDate:d];
+    
+}
+
+-(NSString *) AugemntedHumanDateToHumanDate: (NSString *) augmentedHumanDate
+{
+    NSDate *d;
+    
+    if ([augmentedHumanDate isEqualToString:@""])
+    {
+        return @"";
+    }
+    d = [ugbl dateAugmentedHumanDateToDate:augmentedHumanDate];
+    return [ugbl dateToHumanDate:d];
+    
+}
+
+- (IBAction)btnCheck:(id)sender {
+    [self checkAndUpdateTextFieldContent];
+}
+
 - (IBAction)btnToday:(id)sender {
     NSDate *d = [NSDate date];
-    _txtDate.text = [ugbl dateToHumanDate:d];
+    _txtDate.text = [self HumanDateToAugmentedHumanDate:[ugbl dateToHumanDate:d]];
 }
 
 - (IBAction)btnTomorrow:(id)sender {
@@ -58,28 +116,17 @@
     NSDateComponents *offset = [[NSDateComponents alloc] init];
     [offset setDay:1];
     NSDate *d2 = [[NSCalendar currentCalendar] dateByAddingComponents:offset toDate:d options:0];
-    _txtDate.text = [ugbl dateToHumanDate:d2];
-}
-
--(NSString *) currentDateValidValue
-{
-    NSString *tmp;
-    tmp = [_txtDate.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-    if ([tmp isEqualToString:@""])
-    {
-        return @"";
-    }
-    if (![ugbl doesContainValidHumanDate:tmp])
-           {
-                [ugbl displayPopUpAlert:@"Error" withMessage:@"Date must be a valid date"];
-               return @"";
-           }
-    return tmp;
+    _txtDate.text = [self HumanDateToAugmentedHumanDate:[ugbl dateToHumanDate:d2]];
 }
           
 - (IBAction)btnAdd1d:(id)sender {
     
-    NSString *target = [self currentDateValidValue];
+    if (![self checkAndUpdateTextFieldContent])
+    {
+        return;
+    }
+    
+    NSString *target = [self AugemntedHumanDateToHumanDate:_txtDate.text];
     if ([target isEqualToString:@""])
     {
         return;
@@ -89,11 +136,16 @@
     NSDateComponents *offset = [[NSDateComponents alloc] init];
     [offset setDay:1];
     NSDate *d2 = [[NSCalendar currentCalendar] dateByAddingComponents:offset toDate:d options:0];
-    _txtDate.text = [ugbl dateToHumanDate:d2];
+    _txtDate.text = [self HumanDateToAugmentedHumanDate:[ugbl dateToHumanDate:d2]];
 }
 
 - (IBAction)btnAdd7d:(id)sender {
-    NSString *target = [self currentDateValidValue];
+    if (![self checkAndUpdateTextFieldContent])
+       {
+           return;
+       }
+       
+       NSString *target = [self AugemntedHumanDateToHumanDate:_txtDate.text];
        if ([target isEqualToString:@""])
        {
            return;
@@ -102,7 +154,7 @@
        NSDateComponents *offset = [[NSDateComponents alloc] init];
        [offset setDay:7];
        NSDate *d2 = [[NSCalendar currentCalendar] dateByAddingComponents:offset toDate:d options:0];
-       _txtDate.text = [ugbl dateToHumanDate:d2];
+       _txtDate.text = [self HumanDateToAugmentedHumanDate:[ugbl dateToHumanDate:d2]];
 }
 
 - (IBAction)btnUpcomingMonday:(id)sender {
@@ -110,21 +162,21 @@
     NSDateComponents *dc = [[NSCalendar currentCalendar] components:NSCalendarUnitYear|NSCalendarUnitMonth|NSCalendarUnitDay|NSCalendarUnitWeekday fromDate:[NSDate date]];
     [dc setDay:(([dc day] + (7- [dc weekday]))+2)];
     NSDate *d2 = [[NSCalendar currentCalendar] dateFromComponents:dc];
-    _txtDate.text = [ugbl dateToHumanDate:d2];
+    _txtDate.text = [self HumanDateToAugmentedHumanDate:[ugbl dateToHumanDate:d2]];
 }
 
 - (IBAction)btnOK:(id)sender {
     
+    if (![self checkAndUpdateTextFieldContent])
+    {
+        [ugbl displayPopUpAlert:@"Error" withMessage:@"Date must be a valid date"];
+                    return;
+    }
     NSString *tmp = _txtDate.text;
     
-    tmp = [tmp stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
       if (![tmp isEqualToString:@""])
       {
-          if (![ugbl doesContainValidHumanDate:tmp])
-          {
-               [ugbl displayPopUpAlert:@"Error" withMessage:@"Date must be a valid date"];
-              return;
-          }
+          tmp = [self AugemntedHumanDateToHumanDate:tmp];
       }
       
      [self.delegate doPassbackDatePicker:tmp cancelWasTapped:NO];

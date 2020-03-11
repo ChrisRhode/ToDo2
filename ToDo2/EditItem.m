@@ -5,18 +5,15 @@
 //  Created by Christopher Rhode on 2/23/20.
 //  Copyright © 2020 Christopher Rhode. All rights reserved.
 //
-// ** new release ... how to "force" upgrading code to run
+
 
 #import "EditItem.h"
-// ** how is Interface used in .m?
+
 @interface EditItem ()
 
 @end
 
 @implementation EditItem
-// ** check for db isolation everywhere used
-
-
 
 -(id) initForNodeID: (NSInteger) nodeID withCurrentSnapID: (NSInteger) snapID
 {
@@ -48,7 +45,7 @@
     
     [db openDB];
     sql = @"SELECT ItemText,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
-    // ** efficiency of NSString vs NSMutableString
+    
     
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (NodeID = "];
@@ -267,8 +264,7 @@
     
     newDateOfEvent = [ugbl dateHumanToSortable:tmp];
     
-    // ** all param reads/writes nullable handling
-    // ** nullable yes or no on records return
+    
     
     [db openDB];
     
