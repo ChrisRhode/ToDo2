@@ -84,25 +84,25 @@
     db = [[DBWrapper alloc] initForDbFile:@"ToDoDb"];
     [db openDB];
    
-    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, DateOfEvent TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID));"];
+    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, DateOfEvent TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID))"];
     // 1.0 to 1.1
     if (![db columnExists:@"DateOfEvent" inTable:@"Items"])
     {
-        [db executeSQLCommand:@"ALTER TABLE Items ADD COLUMN DateOfEvent TEXT;"];
+        [db executeSQLCommand:@"ALTER TABLE Items ADD COLUMN DateOfEvent TEXT"];
         [ugbl displayPopUpAlert:@"New feature!" withMessage:@"DateOfEvent now suppported for all items!"];
     }
-    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER,ChgData TEXT);"];
+    [db executeSQLCommand:@"CREATE TABLE IF NOT EXISTS TrnLog (SeqNum INTEGER PRIMARY KEY, SnapID INTEGER NOT NULL, OpCode INTEGER NOT NULL, InProgress INTEGER, P1 INTEGER, P2 INTEGER,ChgData TEXT)"];
     // 1.1 to 1.2
        if (![db columnExists:@"ChgData" inTable:@"TrnLog"])
        {
-           [db executeSQLCommand:@"ALTER TABLE TrnLog ADD COLUMN ChgData TEXT;"];
+           [db executeSQLCommand:@"ALTER TABLE TrnLog ADD COLUMN ChgData TEXT"];
            [ugbl displayPopUpAlert:@"New feature!" withMessage:@"Moving forward, changes to items are now identified more precisely in the Transaction Log"];
        }
     
     NSString *returnedValue;
      // * if no records in table, this will return a record with NULL value in column 0
     
-    [db doSelect:@"SELECT MAX(SnapID) FROM Items;" records:&localRecords];
+    [db doSelect:@"SELECT MAX(SnapID) FROM Items" records:&localRecords];
     returnedValue = [[localRecords objectAtIndex:0] objectAtIndex:0];
     if ([returnedValue isEqualToString:[db cDBNull]])
     {
@@ -113,7 +113,7 @@
         currSnapID = [returnedValue integerValue];
     }
     
-    [db doSelect:@"SELECT MAX(NodeID) FROM Items;" records:&localRecords];
+    [db doSelect:@"SELECT MAX(NodeID) FROM Items" records:&localRecords];
     returnedValue = [[localRecords objectAtIndex:0] objectAtIndex:0];
     if ([returnedValue isEqualToString:[db cDBNull]])
     {
@@ -236,13 +236,13 @@
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     if (displayMode == 3)
     {
-        sql = [sql stringByAppendingString:@") AND (isDeleted = 0) AND ((DateOfEvent IS NOT NULL) OR (BumpToTopDate IS NOT NULL)) ORDER BY COALESCE(DateOfEvent,BumpToTopDate);"];
+        sql = [sql stringByAppendingString:@") AND (isDeleted = 0) AND ((DateOfEvent IS NOT NULL) OR (BumpToTopDate IS NOT NULL)) ORDER BY COALESCE(DateOfEvent,BumpToTopDate)"];
     }
     else
     {
         sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
-           sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
+           sql = [sql stringByAppendingString:@") AND (isDeleted = 0)"];
     }
    
     // * have to use variable local to this scope then copy to instance variable
@@ -483,7 +483,7 @@
             sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
             sql = [sql stringByAppendingString:@") AND (NodeID = "];
             sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)nodeID]];
-            sql = [sql stringByAppendingString:@");"];
+            sql = [sql stringByAppendingString:@")"];
             [self->db executeSQLCommand:sql];
             [self->db closeDB];
             [self->trnLogger logEndTransaction];
@@ -509,7 +509,7 @@
                 sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
                 sql = [sql stringByAppendingString:@") AND (NodeID = "];
                 sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)nodeID]];
-                sql = [sql stringByAppendingString:@");"];
+                sql = [sql stringByAppendingString:@")"];
                 [self->db executeSQLCommand:sql];
                 
                 if (self->currParentNodeID != 0)
@@ -518,7 +518,7 @@
                     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
                     sql = [sql stringByAppendingString:@") AND (NodeID = "];
                     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currParentNodeID)]];
-                    sql = [sql stringByAppendingString:@");"];
+                    sql = [sql stringByAppendingString:@")"];
                     [self->db executeSQLCommand:sql];
                 }
                 
@@ -547,7 +547,7 @@
             sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
             sql = [sql stringByAppendingString:@") AND (NodeID = "];
             sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)nodeID]];
-            sql = [sql stringByAppendingString:@");"];
+            sql = [sql stringByAppendingString:@")"];
             [self->db executeSQLCommand:sql];
             [self->db closeDB];
             [self->trnLogger logEndTransaction];
@@ -858,8 +858,8 @@
         sql = [sql stringByAppendingString:tmp];
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
-        sql = [sql stringByAppendingString:@") AND (isDeleted = 0);"];
-        sql = [sql stringByAppendingString:@") ORDER BY NodeID;"];
+        sql = [sql stringByAppendingString:@") AND (isDeleted = 0)"];
+        sql = [sql stringByAppendingString:@") ORDER BY NodeID"];
         
         // have to use variable local to this scope then copy to instance variable
         [db doSelect:sql records:&localRecords];
@@ -890,7 +890,10 @@
     [trnLogger logStartAddTransactionOfNodeID:(currMaxNodeID+1) parentNodeID:currParentNodeID];
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO Items VALUES (?,?,?,0,?,NULL,0,NULL,0,0,NULL);"];
+    // @"CREATE TABLE IF NOT EXISTS Items (SnapID INTEGER NOT NULL, NodeID INTEGER NOT NULL, ParentNodeID INTEGER NOT NULL, ChildCount INTEGER NOT NULL, ItemText TEXT NOT NULL, Notes TEXT, BumpCtr INTEGER NOT NULL, BumpToTopDate TEXT, DateOfEvent TEXT, isGrayedOut INTEGER NOT NULL, isDeleted INTEGER NOT NULL, PRIMARY KEY (SnapID, NodeID))"
+    // ** V1.7 have to put in field names explictly because field order may differ
+    // **    in a newly created DB vs a upgraded database
+    [db doCommandWithParamsStart:@"INSERT INTO Items (SnapID,NodeID,ParentNodeID,ChildCount,ItemText,Notes,BumpCtr,BumpToTopDate,isGrayedOut,isDeleted,DateOfEvent) VALUES (?,?,?,0,?,NULL,0,NULL,0,0,NULL)"];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     currMaxNodeID += 1;
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)currMaxNodeID]];
@@ -906,7 +909,7 @@
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
         sql = [sql stringByAppendingString:@") AND (NodeID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currParentNodeID]];
-        sql = [sql stringByAppendingString:@");"];
+        sql = [sql stringByAppendingString:@")"];
         [db executeSQLCommand:sql];
     }
     

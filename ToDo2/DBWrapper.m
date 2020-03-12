@@ -231,7 +231,7 @@
     
     sql = @"PRAGMA table_info(";
     sql = [sql stringByAppendingString:tableName];
-    sql = [sql stringByAppendingString:@");"];
+    sql = [sql stringByAppendingString:@")"];
     
     [self doSelect:sql records:&localRecords];
     lastNdx = [localRecords count] - 1;

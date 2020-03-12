@@ -41,7 +41,7 @@
         db = [[DBWrapper alloc] initForDbFile:@"ToDoDb"];
         
         [db openDB];
-        [db doSelect:@"SELECT MAX(SeqNum) FROM TrnLog;" records:&localRecords];
+        [db doSelect:@"SELECT MAX(SeqNum) FROM TrnLog" records:&localRecords];
         returnedValue = [[localRecords objectAtIndex:0] objectAtIndex:0];
         if ([returnedValue isEqualToString:[db cDBNull]])
         {
@@ -89,7 +89,7 @@
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") WHERE (A.SnapID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
-    sql = [sql stringByAppendingString:@") ORDER BY A.SeqNum DESC;"];
+    sql = [sql stringByAppendingString:@") ORDER BY A.SeqNum DESC"];
     // have to use variable local to this scope then copy to instance variable
     [db doSelect:sql records:&localRecords];
     [db closeDB];
@@ -268,7 +268,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL)"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -288,7 +288,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL)"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -306,7 +306,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,NULL)"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -324,7 +324,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL)"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -352,7 +352,7 @@
     
     [db openDB];
     
-    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,?);"];
+    [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,NULL,?)"];
     
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
@@ -371,7 +371,7 @@
     sql = @"UPDATE TrnLog SET InProgress = 0";
     sql = [sql stringByAppendingString:@" WHERE (SeqNum = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currMaxTrnLogSeqNum]];
-    sql = [sql stringByAppendingString:@");"];
+    sql = [sql stringByAppendingString:@")"];
     [db executeSQLCommand:sql];
     [db closeDB];
 }

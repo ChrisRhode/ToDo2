@@ -50,7 +50,7 @@
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (NodeID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)ourNodeID]];
-    sql = [sql stringByAppendingString:@");"];
+    sql = [sql stringByAppendingString:@")"];
     [db doSelect:sql records:&localRecords];
     [db closeDB];
     
@@ -288,7 +288,7 @@
        
        // ***********
     
-    [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=?,DateOfEvent=? WHERE (SnapID = ?) AND (NodeID = ?);"];
+    [db doCommandWithParamsStart:@"UPDATE Items SET ItemText = ?,Notes = ?,BumpCtr = ?,BumpToTopDate=?,DateOfEvent=? WHERE (SnapID = ?) AND (NodeID = ?)"];
     [db doCommandWithParamsAddParameterOfType:@"S" paramValue:newItemText];
     [db doCommandWithParamsAddParameterOfType:@"NS" paramValue:newNotes];
     [db doCommandWithParamsAddParameterOfType:@"I" paramValue:newBumpCtr];
