@@ -43,7 +43,8 @@
     NSString *sql;
     NSInteger nbrOfNodes;
     NSInteger ndx;
-    NSInteger lastNdx;
+    NSInteger lastNdx,lastNdx2;
+    NSInteger aNodeID;
     
     _txtviewOutput.text = @"";
     
@@ -67,7 +68,24 @@
         [seen addObject:@"N"];
     }
     seenCount = [seen count];
+    
     check = [self checkARoot:0 withExpectedChildCount:-1 andLevel:0];
+    
+    // mark up the deleted nodes
+    sql = @"SELECT NodeID,ItemText FROM Items WHERE (SnapID =";
+       sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
+       sql = [sql stringByAppendingString:@") AND (isDeleted = 1)"];
+       [db doSelect:sql records:&localRecords];
+    lastNdx2 = [localRecords count] - 1;
+    for (ndx = 0; ndx <= lastNdx2; ndx ++)
+    {
+        aNodeID = [[[localRecords objectAtIndex:ndx] objectAtIndex:0] integerValue];
+        [seen setObject:@"Y" atIndexedSubscript:(aNodeID - 1)];
+        [self addToOutput:@"(DELETED)"];
+        [self addToOutput:[[localRecords objectAtIndex:ndx] objectAtIndex:1]];
+        [self EOLOutput];
+    }
+    
     [self addToOutput:@"END DB CONSISTENCY CHECK"];
     [self EOLOutput];
     
@@ -104,7 +122,7 @@
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     sql = [sql stringByAppendingString:@") AND (ParentNodeID = "];
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)theRootNodeID]];
-    sql = [sql stringByAppendingString:@")"];
+    sql = [sql stringByAppendingString:@") AND (isDeleted = 0)"];
     [db doSelect:sql records:&localRecords];
     if (expectedChildCount != -1)
     {
