@@ -11,9 +11,18 @@
 // This allows for better encapsulation of the transaction
 // log type IDs and keeps the code in one place, since EditItem
 // now also needs to do transaction log entries
-
+//
+// displayMode
+//  1: items mode (normal/default), sort priority (dates, bump, oldest to newest items)
+//  2: search in progress (2 or more characters in search/add box)
+//  3: dates mode, only show items with dates, sort by coalesce of DateOfEvent,BumpToTopDate
+//
+// based on displayMode, need to alter + hide/disable top buttons, long press, slide options
+// also may need to alter how search/add works and how the stack works
+//
 #import "MainListTableViewController.h"
 #import "EditItem.h"
+#import "DBMgr.h"
 
 @interface MainListTableViewController ()
 
@@ -42,6 +51,7 @@
     //
     refreshDueToEdit = NO;
     displayMode = 1;
+    moveMode = NO;
     //self.title = @"ToDo by Chris Rhode";
         
     // later, tableview cells are set to background clearcolor so image shows behind them
@@ -151,8 +161,20 @@
     
     UIBarButtonItem *tmp1 = [[UIBarButtonItem alloc] initWithTitle:@"TrnLog" style:UIBarButtonItemStylePlain target:self action:@selector(handleDisplayTrnLog)];
     UIBarButtonItem *tmp2 = [[UIBarButtonItem alloc] initWithTitle:lbl style:UIBarButtonItemStylePlain target:self action:@selector(handleToggleItemsDates)];
-      
-      self.navigationItem.rightBarButtonItems = @[tmp1,tmp2]; // inserts right to left
+    UIBarButtonItem *tmp3 = [[UIBarButtonItem alloc] initWithTitle:@"DB" style:UIBarButtonItemStylePlain target:self action:@selector(handleDBMgr)];
+    
+      self.navigationItem.rightBarButtonItems = @[tmp1,tmp2,tmp3]; // inserts right to left
+    
+    if (moveMode)
+    {
+       UIBarButtonItem *tmp1 = [[UIBarButtonItem alloc] initWithTitle:@"End Move" style:UIBarButtonItemStylePlain target:self action:@selector(handleEndMoveMode)];
+        
+        self.navigationItem.leftBarButtonItems = @[tmp1];
+    }
+    else
+    {
+        self.navigationItem.leftBarButtonItems = nil;
+    }
 }
 
 -(void) viewWillAppear:(BOOL)animated
@@ -412,6 +434,17 @@
     [self setTopButtons];
     [self loadOrReloadCurrentItemView:YES];
 }
+-(void)handleDBMgr
+{
+    DBMgr *tmp = [[DBMgr alloc] init];
+    [[self navigationController] pushViewController:tmp animated:YES];
+}
+
+-(void)handleEndMoveMode
+{
+    moveMode = NO;
+    [self setTopButtons];
+}
 
 - (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -586,6 +619,111 @@
     
 }
 
+- (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView leadingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSUInteger row;
+    row = [indexPath row];
+    
+    if (row == 0)
+    {
+        return nil;
+    }
+    else if (!moveMode)
+    {
+         UIContextualAction *aMove;
+               
+               aMove = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Set As Move Parent" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
+                              
+                   NSArray *aRecord;
+                   aRecord = [self->viewRecords objectAtIndex:(row-1)];
+                   self->moveParentNodeID = [[aRecord objectAtIndex:0] integerValue];
+                   
+                   self->moveMode = YES;
+                   [self setTopButtons];
+                   //return YES;
+                    [self loadOrReloadCurrentItemView:YES];
+                          }];
+                          
+               aMove.backgroundColor = [UIColor cyanColor];
+               
+               UISwipeActionsConfiguration *actions;
+               actions = [UISwipeActionsConfiguration configurationWithActions:@[aMove]];
+                    
+               return actions;
+    }
+    else
+    {
+        NSArray *aRecord;
+        NSInteger thisNodeID;
+        aRecord = [self->viewRecords objectAtIndex:(row-1)];
+        thisNodeID  = [[aRecord objectAtIndex:0] integerValue];
+        if (thisNodeID == moveParentNodeID)
+        {
+            return nil;
+        }
+        UIContextualAction *aMove;
+        
+        aMove = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Move to new Parent" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
+            
+            // action to move the item to the new parent
+            // node thisNodeID becomes new child of moveParentNodeID
+            // remove it from the old Parent and add it to the new Parent
+            
+            NSArray *localRecords;
+            
+            [self->trnLogger logStartMoveTransactionOfNodeID:thisNodeID toNewParentNodeID:(self->moveParentNodeID)];
+            [self->db openDB];
+            NSString *sql;
+            // get current parent of current item
+            sql = @"SELECT ParentNodeID FROM Items WHERE (SnapID = ";
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
+            sql = [sql stringByAppendingString:@") AND (NodeID = "];
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(thisNodeID)]];
+            sql = [sql stringByAppendingString:@")"];
+            
+            [self->db doSelect:sql records:&localRecords];
+            NSInteger thisNodeCurrentParent = [[[localRecords objectAtIndex:0] objectAtIndex:0] integerValue];
+            if (thisNodeCurrentParent != 0)
+            {
+                sql = @"UPDATE Items SET ChildCount = ChildCount - 1 WHERE (SnapID = ";
+                sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
+                sql = [sql stringByAppendingString:@") AND (NodeID = "];
+                sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(thisNodeCurrentParent)]];
+                sql = [sql stringByAppendingString:@")"];
+                [self->db executeSQLCommand:sql];
+                
+            }
+            sql = @"UPDATE Items SET ChildCount = ChildCount + 1 WHERE (SnapID = ";
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
+            sql = [sql stringByAppendingString:@") AND (NodeID = "];
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->moveParentNodeID)]];
+            sql = [sql stringByAppendingString:@")"];
+            [self->db executeSQLCommand:sql];
+           
+            //sql = @"UPDATE Items SET ParentNodeID = WHERE (SnapID = ";
+            sql = @"UPDATE Items SET ParentNodeID = ";
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->moveParentNodeID)]];
+            sql = [sql stringByAppendingString:@" WHERE (SnapID = "];
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
+            sql = [sql stringByAppendingString:@") AND (NodeID = "];
+            sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(thisNodeID)]];
+            sql = [sql stringByAppendingString:@")"];
+            [self->db executeSQLCommand:sql];
+            
+            [self->db closeDB];
+            [self->trnLogger logEndTransaction];
+            [self loadOrReloadCurrentItemView:YES];
+            
+        }];
+        
+        aMove.backgroundColor = [UIColor brownColor];
+        
+        UISwipeActionsConfiguration *actions;
+        actions = [UISwipeActionsConfiguration configurationWithActions:@[aMove]];
+        
+        return actions;
+    }
+}
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -859,7 +997,8 @@
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
         sql = [sql stringByAppendingString:@") AND (isDeleted = 0)"];
-        sql = [sql stringByAppendingString:@") ORDER BY NodeID"];
+        // fixed 04/21/2019 had extra leading ) oops!
+        sql = [sql stringByAppendingString:@" ORDER BY NodeID"];
         
         // have to use variable local to this scope then copy to instance variable
         [db doSelect:sql records:&localRecords];

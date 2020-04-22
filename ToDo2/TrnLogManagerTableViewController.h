@@ -26,6 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) logStartBumpTransactionOfNodeID : (NSInteger) nodeID;
 -(void) logStartGrayToggleTransactionOfNodeID : (NSInteger) nodeID newStateIsGray: (BOOL) theNewStateIsGray;
 -(void) logStartEditTransactionOfNodeID : (NSInteger) nodeID withChangeData : (NSString *) theChangeData;
+-(void) logStartMoveTransactionOfNodeID: (NSInteger) nodeID toNewParentNodeID: (NSInteger) theNewParentNodeID;
 -(void) logEndTransaction;
 
 @end

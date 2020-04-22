@@ -363,6 +363,25 @@
     [db doCommandWithParamsEnd];
     [db closeDB];
 }
+
+-(void) logStartMoveTransactionOfNodeID: (NSInteger) nodeID toNewParentNodeID: (NSInteger) theNewParentNodeID
+{
+    
+    currMaxTrnLogSeqNum +=1;
+       
+       [db openDB];
+       
+       [db doCommandWithParamsStart:@"INSERT INTO TrnLog VALUES (?,?,?,?,?,?,NULL)"];
+       
+       [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currMaxTrnLogSeqNum]];
+       [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", currSnapID]];
+       [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)(6)]];
+       [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)(1)]];
+       [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)nodeID]];
+        [db doCommandWithParamsAddParameterOfType:@"I" paramValue:[NSString stringWithFormat:@"%ld", (long)theNewParentNodeID]];
+       [db doCommandWithParamsEnd];
+       [db closeDB];
+}
 -(void) logEndTransaction
 {
     NSString *sql;

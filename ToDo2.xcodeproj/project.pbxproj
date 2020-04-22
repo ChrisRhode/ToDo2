@@ -13,6 +13,8 @@
 		8376BFC724039A8D002DEAA7 /* EditItem.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8376BFC524039A8D002DEAA7 /* EditItem.xib */; };
 		83B070C323FE185F0097DD50 /* DBWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B070C223FE185F0097DD50 /* DBWrapper.m */; };
 		83B070C623FE1B290097DD50 /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B070C523FE1B290097DD50 /* Utility.m */; };
+		83B3716C244FAEE00067485C /* DBMgr.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B3716A244FAEE00067485C /* DBMgr.m */; };
+		83B3716D244FAEE00067485C /* DBMgr.xib in Resources */ = {isa = PBXBuildFile; fileRef = 83B3716B244FAEE00067485C /* DBMgr.xib */; };
 		83B85F1224104CAB0006E22A /* DatePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = 83B85F1024104CAB0006E22A /* DatePicker.m */; };
 		83B85F1324104CAB0006E22A /* DatePicker.xib in Resources */ = {isa = PBXBuildFile; fileRef = 83B85F1124104CAB0006E22A /* DatePicker.xib */; };
 		83E717AE2402122300CCE37E /* TrnLogManagerTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E717AD2402122300CCE37E /* TrnLogManagerTableViewController.m */; };
@@ -37,6 +39,9 @@
 		83B070C223FE185F0097DD50 /* DBWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DBWrapper.m; sourceTree = "<group>"; };
 		83B070C423FE1B290097DD50 /* Utility.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		83B070C523FE1B290097DD50 /* Utility.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
+		83B37169244FAEE00067485C /* DBMgr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DBMgr.h; sourceTree = "<group>"; };
+		83B3716A244FAEE00067485C /* DBMgr.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DBMgr.m; sourceTree = "<group>"; };
+		83B3716B244FAEE00067485C /* DBMgr.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DBMgr.xib; sourceTree = "<group>"; };
 		83B85F0F24104CAB0006E22A /* DatePicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DatePicker.h; sourceTree = "<group>"; };
 		83B85F1024104CAB0006E22A /* DatePicker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DatePicker.m; sourceTree = "<group>"; };
 		83B85F1124104CAB0006E22A /* DatePicker.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DatePicker.xib; sourceTree = "<group>"; };
@@ -116,6 +121,9 @@
 				83B85F0F24104CAB0006E22A /* DatePicker.h */,
 				83B85F1024104CAB0006E22A /* DatePicker.m */,
 				83B85F1124104CAB0006E22A /* DatePicker.xib */,
+				83B37169244FAEE00067485C /* DBMgr.h */,
+				83B3716A244FAEE00067485C /* DBMgr.m */,
+				83B3716B244FAEE00067485C /* DBMgr.xib */,
 			);
 			path = ToDo2;
 			sourceTree = "<group>";
@@ -183,6 +191,7 @@
 				83F2A40623FE118C00E9C940 /* LaunchScreen.storyboard in Resources */,
 				8376BFC724039A8D002DEAA7 /* EditItem.xib in Resources */,
 				83F2A40323FE118C00E9C940 /* Assets.xcassets in Resources */,
+				83B3716D244FAEE00067485C /* DBMgr.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +208,7 @@
 				83B070C323FE185F0097DD50 /* DBWrapper.m in Sources */,
 				83F2A3F823FE118B00E9C940 /* AppDelegate.m in Sources */,
 				831B719D23FE14B100BCB8B3 /* MainListTableViewController.m in Sources */,
+				83B3716C244FAEE00067485C /* DBMgr.m in Sources */,
 				83EA8310240713BC00542D9C /* TextViewEditor.m in Sources */,
 				83B070C623FE1B290097DD50 /* Utility.m in Sources */,
 				83B85F1224104CAB0006E22A /* DatePicker.m in Sources */,
@@ -342,7 +352,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = ratcliffe.ToDo2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -360,7 +370,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = ratcliffe.ToDo2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
