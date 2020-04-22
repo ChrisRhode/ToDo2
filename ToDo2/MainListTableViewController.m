@@ -1012,7 +1012,7 @@
         NSMutableArray *localRecords;
         [db openDB];
         
-        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (ItemText LIKE '%";
+        sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent,ParentNodeID FROM Items WHERE (ItemText LIKE '%";
         sql = [sql stringByAppendingString:tmp];
         sql = [sql stringByAppendingString:@"%') AND (SnapID = "];
         sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)(self->currSnapID)]];
