@@ -241,6 +241,25 @@
             //
             break;
         }
+        case 6:
+        {
+            display = @"Move '";
+            display = [display stringByAppendingString:[aRecord objectAtIndex:3]];
+            display = [display stringByAppendingString:@"' into "];
+            P2 = [[aRecord objectAtIndex:2] integerValue];
+            if (P2 == 0)
+            {
+                display = [display stringByAppendingString:@"root"];
+            }
+            else
+            {
+                display = [display stringByAppendingString:@"'"];
+                display = [display stringByAppendingString:[aRecord objectAtIndex:4]];
+                display = [display stringByAppendingString:@"'"];
+            }
+          
+            break;
+        }
         default:
         {
             display = @"Error!";

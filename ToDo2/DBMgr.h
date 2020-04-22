@@ -16,12 +16,14 @@ NS_ASSUME_NONNULL_BEGIN
 {
     DBWrapper *db;
     Utility *ugbl;
-    int currSnapID;
+    NSInteger currSnapID;
     NSMutableArray *seen;
     NSInteger seenCount;
 }
 
 @property (weak, nonatomic) IBOutlet UITextView *txtviewOutput;
+
+-(id) initWithCurrSnapID: (NSInteger) snapID;
 
 @end
 

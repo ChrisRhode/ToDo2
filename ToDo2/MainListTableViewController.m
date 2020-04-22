@@ -81,7 +81,8 @@
     searchOrAdd.borderStyle = UITextBorderStyleRoundedRect;
     searchOrAdd.clearButtonMode = YES;
     searchOrAdd.placeholder = @"(search/add)";
-    searchOrAdd.backgroundColor = [UIColor clearColor];
+    //searchOrAdd.backgroundColor = [UIColor clearColor];
+    searchOrAdd.backgroundColor = [UIColor colorWithRed:0.0 green:1.0 blue:0.8 alpha:0.1];
     [[self tableView] setTableHeaderView:searchOrAdd];
     
     // long press on a cell to edit that item
@@ -254,7 +255,7 @@
     NSMutableArray *localRecords;
     
     [db openDB];
-    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent FROM Items WHERE (SnapID = ";
+    sql = @"SELECT NodeID,ChildCount,ItemText,isGrayedOut,Notes,BumpCtr,BumpToTopDate,DateOfEvent,ParentNodeID FROM Items WHERE (SnapID = ";
     sql = [sql stringByAppendingString:[NSString stringWithFormat:@"%ld", (long)currSnapID]];
     if (displayMode == 3)
     {
@@ -436,7 +437,7 @@
 }
 -(void)handleDBMgr
 {
-    DBMgr *tmp = [[DBMgr alloc] init];
+    DBMgr *tmp = [[DBMgr alloc] initWithCurrSnapID:currSnapID];
     [[self navigationController] pushViewController:tmp animated:YES];
 }
 
@@ -624,19 +625,22 @@
     NSUInteger row;
     row = [indexPath row];
     
-    if (row == 0)
-    {
-        return nil;
-    }
-    else if (!moveMode)
+    if (!moveMode)
     {
          UIContextualAction *aMove;
                
                aMove = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Set As Move Parent" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
                               
                    NSArray *aRecord;
-                   aRecord = [self->viewRecords objectAtIndex:(row-1)];
-                   self->moveParentNodeID = [[aRecord objectAtIndex:0] integerValue];
+                   if (row == 0)
+                   {
+                       self->moveParentNodeID = 0;
+                   }
+                   else
+                   {
+                       aRecord = [self->viewRecords objectAtIndex:(row-1)];
+                       self->moveParentNodeID = [[aRecord objectAtIndex:0] integerValue];
+                   }
                    
                    self->moveMode = YES;
                    [self setTopButtons];
@@ -653,14 +657,27 @@
     }
     else
     {
+        if (row == 0)
+        {
+            return nil;
+        }
         NSArray *aRecord;
         NSInteger thisNodeID;
+        NSInteger thisNodeParentNodeID;
         aRecord = [self->viewRecords objectAtIndex:(row-1)];
         thisNodeID  = [[aRecord objectAtIndex:0] integerValue];
+        // selected parent cannot be moved into itself
         if (thisNodeID == moveParentNodeID)
         {
             return nil;
         }
+        // nodes already children of this parent cannot be moved
+        thisNodeParentNodeID  = [[aRecord objectAtIndex:8] integerValue];
+        if (thisNodeParentNodeID == moveParentNodeID)
+        {
+            return nil;
+        }
+        
         UIContextualAction *aMove;
         
         aMove = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Move to new Parent" handler:^(UIContextualAction * _Nonnull action, __kindof UIView * _Nonnull sourceView, void (^ _Nonnull completionHandler)(BOOL)) {
@@ -683,6 +700,7 @@
             
             [self->db doSelect:sql records:&localRecords];
             NSInteger thisNodeCurrentParent = [[[localRecords objectAtIndex:0] objectAtIndex:0] integerValue];
+            
             if (thisNodeCurrentParent != 0)
             {
                 sql = @"UPDATE Items SET ChildCount = ChildCount - 1 WHERE (SnapID = ";
@@ -723,6 +741,7 @@
         
         return actions;
     }
+    
 }
 #pragma mark - Table view data source
 
@@ -766,6 +785,7 @@
         
         
         cell.textLabel.text = lbl;
+        cell.backgroundColor = [UIColor colorWithRed:0.6 green:0.0 blue:1.0 alpha:0.1];
     }
     else
     {

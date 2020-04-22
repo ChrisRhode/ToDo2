@@ -14,10 +14,23 @@
 
 @implementation DBMgr
 
+-(id) initWithCurrSnapID: (NSInteger) snapID
+{
+    if (self = [super init])
+          {
+              currSnapID = snapID;
+              
+              return self;
+          }
+          else
+          {
+              return nil;
+          }
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    currSnapID = 1;
     db = [[DBWrapper alloc] initForDbFile:@"ToDoDb"];
     ugbl = [[Utility alloc] init];
     _txtviewOutput.text = @"";
